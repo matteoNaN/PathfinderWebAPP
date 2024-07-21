@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Color3, StandardMaterial, DynamicTexture } from '@babylonjs/core';
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Color3, StandardMaterial, Node, NodeGeometry, PointerDragBehavior, PointerInfo } from '@babylonjs/core';
 
 const GRID_SIZE : number = 50;
-const CELL_SIZE     : number = 1.5;
+const CELL_SIZE : number = 1.5;
 
 class MainRenderService{
 
@@ -13,7 +15,7 @@ class MainRenderService{
     {
         this.engine = new Engine(canvas);
         this.scene = new Scene(this.engine);
-
+        this.scene.debugLayer.show();
         this.createCamera(canvas);
         this.createLight()
         this.createTerrain()
@@ -26,6 +28,7 @@ class MainRenderService{
 
     }
     private createTerrain() {
+        this.createTestCube();
         const ground = MeshBuilder.CreateGround('ground', {width: GRID_SIZE*1.5, height: GRID_SIZE*1.5, subdivisions: 10}, this.scene!);
 
         // Materiale per il terreno
@@ -34,7 +37,6 @@ class MainRenderService{
         ground.material = groundMaterial;
     
         // Crea la griglia
-
     
         for (let i = 0; i <= GRID_SIZE; i++) {
             // Linee verticali
@@ -46,6 +48,8 @@ class MainRenderService{
                 updatable: false
             }, this.scene!);
             vLine.color = Color3.Black();
+
+            
     
             // Linee orizzontali
             const hLine = MeshBuilder.CreateLines('hLine', {
@@ -60,12 +64,50 @@ class MainRenderService{
 
 
     }
+     private createTestCube() {
+        const cube = MeshBuilder.CreateBox("testbox", {width:1.5, height:1.5, depth:1.5}, this.scene!)
+        cube.position = new Vector3(0,CELL_SIZE/2,0)
+
+        var pointerDragBehavior = new PointerDragBehavior({dragPlaneNormal: new Vector3(0,1,0)});
+        // Use drag plane in world space
+        pointerDragBehavior.useObjectOrientationForDragging = false;
+        pointerDragBehavior.onDragStartObservable.add((event)=>{
+            console.log("dragStart");
+            console.log(event);
+        })
+        pointerDragBehavior.onDragObservable.add((event)=>{
+            let pointerInfo: PointerInfo = event.pointerInfo!
+            pointerInfo.pickInfo?.pickedPoint
+            console.log(event)
+            
+
+        })
+        pointerDragBehavior.onDragEndObservable.add((event)=>{
+            const snappedPosition = this.snapToGrid(cube.position);
+            cube.position = snappedPosition;
+
+        })
+
+        cube.addBehavior(pointerDragBehavior)
+
+    }
+    private snapToGrid(position: Vector3) {
+        const halfCellSize = CELL_SIZE / 2;
+
+        const snappedX = Math.round((position.x - halfCellSize) / CELL_SIZE) * CELL_SIZE + halfCellSize;
+        const snappedZ = Math.round((position.z - halfCellSize) / CELL_SIZE) * CELL_SIZE + halfCellSize;
+    
+        return new Vector3(snappedX, position.y, snappedZ);
+    }
 
     private createCamera(canvas : HTMLCanvasElement) : void
     {
         const camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, 5, new Vector3(0, 0, 0), this.scene!);
         camera.attachControl(canvas, true);
         camera.upperBetaLimit = Math.PI / 2.5;
+        camera.lowerRadiusLimit = 5;
+        camera.lowerBetaLimit = 0.1;
+        camera.upperBetaLimit = (Math.PI / 2) * 0.9;
         
     }
 
