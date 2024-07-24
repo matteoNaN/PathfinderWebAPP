@@ -1,6 +1,7 @@
 
 import './App.css'
 import Canvas from './Components/Canvas'
+import Distance from './Components/Distance'
 
 function App() {
 
@@ -8,6 +9,7 @@ function App() {
     <>
     <div className="App">
       <Canvas></Canvas>
+      <Distance/>
     </div>
     </>
   )
