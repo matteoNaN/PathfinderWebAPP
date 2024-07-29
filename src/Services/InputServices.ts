@@ -11,6 +11,7 @@ export class InputService {
   private _secondPoint: Nullable<Vector3> = null;
   private _lineMesh: Nullable<LinesMesh> = null;
   private _isMeasuringEnabled: boolean = false;
+  private _drawSphereEnabled: boolean = false;
 
   constructor(sceneRef: Nullable<Scene>) {
     this._sceneRef = sceneRef;
@@ -48,7 +49,11 @@ export class InputService {
         this._isMeasuringEnabled = !this._isMeasuringEnabled;
         console.log(`Measuring mode: ${this._isMeasuringEnabled ? "enabled" : "disabled"}`);
       }
+      if(event.key === "s"){
+        this._drawSphereEnabled =   !this._drawSphereEnabled
+      }
     });
+
   }
   
 

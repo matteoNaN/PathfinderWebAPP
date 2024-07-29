@@ -1,7 +1,8 @@
 
 import './App.css'
-import Canvas from './Components/Canvas'
-import Distance from './Components/Distance'
+import Canvas from './Components/Canvas/Canvas'
+import Distance from './Components/Distance/Distance'
+import FloatingRightMenu from './Components/RightMenu/RightMenu'
 
 function App() {
 
@@ -9,6 +10,7 @@ function App() {
     <>
     <div className="App">
       <Canvas></Canvas>
+      <FloatingRightMenu/>
       <Distance/>
     </div>
     </>

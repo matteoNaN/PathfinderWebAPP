@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useRef } from 'react';
-import MainRenderService from '../Services/MainRenderService';
+import MainRenderService from '../../Services/MainRenderService';
 
 const BabylonCanvas: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
