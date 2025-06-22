@@ -5,10 +5,10 @@ import {
   PointerEventTypes,
   Vector3,
   MeshBuilder,
-  LinesMesh,
   AbstractMesh,
 } from "@babylonjs/core";
-import eventEmitter from "../Events/misurazioneEventEmitter.ts";
+import { GUI3DManager, Slider3D, StackPanel3D } from '@babylonjs/gui';
+import MeasurementService from "./MeasurementService";
 
 type ActionCallback = () => void;
 
@@ -18,9 +18,9 @@ export class InputService {
   private _sceneRef: Nullable<Scene> = null;
 
   private _firstPoint: Nullable<Vector3> = null;
-  private _secondPoint: Nullable<Vector3> = null;
-  private _lineMesh: Nullable<LinesMesh> = null;
-  private _isMeasuringEnabled: boolean = false;
+  // private _secondPoint: Nullable<Vector3> = null;
+  // private _lineMesh: Nullable<LinesMesh> = null;
+  // private _isMeasuringEnabled: boolean = false;
   private _drawSphereEnabled: boolean = false;
   private _sphereRadius: Nullable<number> = null;
 
@@ -34,22 +34,20 @@ export class InputService {
   private initActions() {
     // Inizializza le azioni qui
     this._actions.set("POINTER_DOWN_MEASUREMENT", () =>
-      this.handleMeasurementPointerDown()
+      this.handleSpherePointerDown()
     );
     this._actions.set("POINTER_MOVE_MEASUREMENT", () =>
-      this.handleMeasuremetPointerMove()
+      this.handleSpherePointerMove()
     );
 
     this._actions.set("POINTER_DOWN_SPHERE", () =>
       this.handleSpherePointerDown()
     );
-    this._actions.set("POINTER_MOVE_SPHERE", () =>
-      this.handleSpherePointerMove()
-    );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private handleSpherePointerMove(): void {
-    
+    // Implementation for sphere pointer move
   }
   private handleSpherePointerDown(): void {
     if (this._sceneRef) {
@@ -66,35 +64,54 @@ export class InputService {
             this._firstPoint,
             pickResult.pickedPoint!
           );
-          console.log(`Radius set: ${this._sphereRadius}`);
-          const circle: AbstractMesh = MeshBuilder.CreateDisc("disc-mesh", {
-            radius: this._sphereRadius,
-            tessellation: 32,
-          },this._sceneRef);
-            
-          circle.position = this._firstPoint;
-          circle.rotation.x = Math.PI;
-          
-          
+          const circle: AbstractMesh = MeshBuilder.CreateSphere(
+            "disc-mesh",
+            {
+              diameter: this._sphereRadius,
+              segments: 32,
+            },
+            this._sceneRef
+          );
 
+          circle.position = this._firstPoint;
+          this._addUISlider(circle);
+           this._drawSphereEnabled = false;
         }
       }
     }
   }
+private _addUISlider(targetMesh: AbstractMesh): void {
+  const manager = new GUI3DManager(this._sceneRef!);
+  const panel = new StackPanel3D();
+  manager.addControl(panel);
+
+  const sliderPosition:Vector3 = targetMesh.position;
+  sliderPosition.y += 1
+
+  // Posiziona il pannello vicino alla sfera
+  panel.position = sliderPosition // spostalo a lato
+
+  const slider = new Slider3D();
+  panel.addControl(slider);
+
+  slider.minimum = 0.5;
+  slider.maximum = 30;
+  slider.value = 1;
+
+  // Ridimensiona la sfera al cambio dello slider
+  slider.onValueChangedObservable.add((value:number) => {
+    targetMesh.scaling = new Vector3(value, value, value);
+    panel.position.y = value + 1
+  });
+}
+
 
   private setupPointerObservables() {
     if (this._sceneRef) {
       this._sceneRef.onPointerObservable.add((pointerInfo: PointerInfo) => {
-        if (this._isMeasuringEnabled) {
-          switch (pointerInfo.type) {
-            case PointerEventTypes.POINTERDOWN:
-              this._executeAction("POINTER_DOWN_MEASUREMENT");
-              break;
-            case PointerEventTypes.POINTERMOVE:
-              this._executeAction("POINTER_MOVE_MEASUREMENT");
-              break;
-          }
-        }
+        // Let MeasurementService handle its own pointer events directly
+        // Remove conflicting handlers that were causing issues
+        
         if (this._drawSphereEnabled) {
           switch (pointerInfo.type) {
             case PointerEventTypes.POINTERDOWN:
@@ -109,18 +126,18 @@ export class InputService {
     }
   }
 
+  // Removed duplicate measurement handlers - MeasurementService now handles its own pointer events
+
   private setupKeyboardListener() {
     window.addEventListener("keydown", (event) => {
       if (event.key === "m") {
-        this._isMeasuringEnabled = !this._isMeasuringEnabled;
-        console.log(
-          `Measuring mode: ${this._isMeasuringEnabled ? "enabled" : "disabled"}`
-        );
+        MeasurementService.toggleMeasurement();
       }
-      if (event.key === "s") {
-        this._drawSphereEnabled = !this._drawSphereEnabled;
-        console.log("disegnando la sfera");
-      }
+      // Disabled sphere drawing to prevent unwanted sphere spawning
+      // if (event.key === "s") {
+      //   this._drawSphereEnabled = !this._drawSphereEnabled;
+      //   console.log("disegnando la sfera");
+      // }
     });
   }
 
@@ -137,64 +154,14 @@ export class InputService {
     }
   }
 
-  private handleMeasurementPointerDown() {
-    if (this._sceneRef) {
-      const pickResult = this._sceneRef.pick(
-        this._sceneRef.pointerX,
-        this._sceneRef.pointerY
-      );
-      if (pickResult && pickResult.hit) {
-        if (!this._firstPoint) {
-          this._firstPoint = pickResult.pickedPoint;
-          console.log("First point set:", this._firstPoint);
-        } else {
-          this._secondPoint = pickResult.pickedPoint;
-          console.log("Second point set:", this._secondPoint);
-          this.calculateDistance();
-          // Reset points after calculation
-          this._firstPoint = null;
-          this._secondPoint = null;
-        }
-      }
-    }
-  }
+  // Old measurement methods removed - now handled by MeasurementService
 
-  private handleMeasuremetPointerMove(): void {
-    if (this._firstPoint && !this._secondPoint && this._sceneRef) {
-      const pickResult = this._sceneRef.pick(
-        this._sceneRef.pointerX,
-        this._sceneRef.pointerY
-      );
-
-      if (this._lineMesh) {
-        this._sceneRef.removeMesh(this._lineMesh);
-      }
-
-      this._lineMesh = MeshBuilder.CreateLines(
-        "linea_misura",
-        {
-          points: [this._firstPoint, pickResult.pickedPoint!],
-        },
-        this._sceneRef
-      );
-    }
-  }
-
-  private calculateDistance() {
-    if (this._firstPoint && this._secondPoint) {
-      const distance = Vector3.Distance(this._firstPoint, this._secondPoint);
-      console.log(`Distance between points: ${distance}`);
-      eventEmitter.emit("distanceCalculated", distance);
-    }
-  }
-
-  private Cleanup() {
-     this._firstPoint= null;
-     this._secondPoint = null;
-     this._lineMesh= null;
-     this._isMeasuringEnabled= false;
-     this._drawSphereEnabled= false;
-     this._sphereRadius= null;
-
-  }
+  // private cleanup() {
+  //   this._firstPoint = null;
+  //   this._secondPoint = null;
+  //   this._lineMesh = null;
+  //   this._isMeasuringEnabled = false;
+  //   this._drawSphereEnabled = false;
+  //   this._sphereRadius = null;
+  // }
 }

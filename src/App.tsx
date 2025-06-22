@@ -1,19 +1,112 @@
-
+import { useState, useEffect } from 'react';
 import './App.css'
 import Canvas from './Components/Canvas/Canvas'
 import Distance from './Components/Distance/Distance'
 import FloatingRightMenu from './Components/RightMenu/RightMenu'
+import CombatUI from './Components/Combat/CombatUI'
+import AppTutorial from './Components/Tutorial/AppTutorial'
+import MainRenderService from './Services/MainRenderService';
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Caricamento applicazione...');
+  const [error, setError] = useState<string | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [, setIsTutorialComplete] = useState(false);
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        setLoadingMessage('Inizializzazione del motore 3D...');
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+        
+        setLoadingMessage('Caricamento completato!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setIsLoading(false);
+        
+        // Check if tutorial should be shown
+        const tutorialDisabled = localStorage.getItem('dnd-combat-tutorial-disabled') === 'true';
+        const hasSeenTutorial = localStorage.getItem('dnd-combat-tutorial-seen') === 'true';
+        
+        if (!tutorialDisabled && !hasSeenTutorial) {
+          setTimeout(() => {
+            setShowTutorial(true);
+          }, 1000);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Errore durante l\'inizializzazione');
+        setIsLoading(false);
+      }
+    };
+
+    initializeApp();
+  }, []);
+
+  const handleTutorialComplete = () => {
+    setShowTutorial(false);
+    setIsTutorialComplete(true);
+    localStorage.setItem('dnd-combat-tutorial-seen', 'true');
+  };
+
+  const startTutorial = () => {
+    setShowTutorial(true);
+  };
+
+  if (error) {
+    return (
+      <div className="App error-state">
+        <div className="error-container">
+          <h2>❌ Errore di Caricamento</h2>
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>
+            🔄 Ricarica Applicazione
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="App loading-state">
+        <div className="loading-container">
+          <div className="loading-spinner">⚡</div>
+          <h2>🎲 Simulatore di Combattimento D&D</h2>
+          <p>{loadingMessage}</p>
+          <div className="loading-bar">
+            <div className="loading-progress"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
     <div className="App">
-      <Canvas></Canvas>
-      <FloatingRightMenu/>
-      <Distance/>
+      {/* Main 3D Canvas */}
+      <Canvas />
+      
+      {/* Combat Management UI */}
+      <CombatUI />
+      
+      {/* Floating Tools Menu */}
+      <FloatingRightMenu onStartTutorial={startTutorial} />
+      
+      {/* Distance Measurement Display */}
+      <Distance />
+      
+      {/* Camera Controls Info */}
+      <div className="camera-controls-info">
+        <small>{MainRenderService.getCameraControlsInfo()}</small>
+      </div>
+      
+      {/* Tutorial Component */}
+      <AppTutorial 
+        runTutorial={showTutorial}
+        onTutorialComplete={handleTutorialComplete}
+      />
     </div>
-    </>
   )
 }
 

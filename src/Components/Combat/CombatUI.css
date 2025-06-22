@@ -1,0 +1,651 @@
+.combat-ui {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  width: 350px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.combat-ui.has-entities {
+  opacity: 1;
+}
+
+.combat-ui.no-entities {
+  opacity: 0.8;
+}
+
+.combat-ui.no-entities .entity-management {
+  border: 2px dashed #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.combat-ui.no-entities .entity-management h3 {
+  color: #ffd700;
+  margin-bottom: 15px;
+}
+
+.combat-ui.no-entities .entity-management::before {
+  content: "👥 ";
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* Quick Start Tips */
+.quick-start-tips {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  color: white;
+}
+
+.quick-start-tips h3 {
+  margin: 0 0 15px 0;
+  color: white;
+  font-size: 1.1rem;
+}
+
+.quick-start-tips ol {
+  margin: 0 0 15px 0;
+  padding-left: 20px;
+}
+
+.quick-start-tips li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.quick-start-tips p {
+  margin: 0;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Custom Scrollbar */
+.combat-ui::-webkit-scrollbar {
+  width: 8px;
+}
+
+.combat-ui::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.combat-ui::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.combat-ui::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Combat Status */
+.combat-status {
+  margin-bottom: 20px;
+}
+
+.combat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.combat-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.combat-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.combat-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.round-info {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #ffd700;
+}
+
+.current-turn {
+  font-size: 0.9rem;
+}
+
+.entity-name {
+  font-weight: bold;
+  color: #4ecdc4;
+}
+
+/* Initiative Tracker */
+.initiative-tracker {
+  margin-bottom: 20px;
+}
+
+.initiative-tracker h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
+  color: #ffd700;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+  padding-bottom: 8px;
+}
+
+.initiative-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.initiative-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.initiative-item.current {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #333;
+  font-weight: bold;
+  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+}
+
+.initiative-item.player {
+  border-left: 4px solid #4ecdc4;
+}
+
+.initiative-item.enemy {
+  border-left: 4px solid #ff6b6b;
+}
+
+.initiative-item.npc {
+  border-left: 4px solid #95e1d3;
+}
+
+.initiative-number {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-right: 12px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.entity-info {
+  flex: 1;
+}
+
+.entity-info .entity-name {
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+
+.entity-info .entity-type {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  text-transform: capitalize;
+}
+
+.entity-hp {
+  font-weight: bold;
+  color: #ff6b6b;
+}
+
+/* Entity Management */
+.entity-management {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #ffd700;
+}
+
+.entity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entity-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.entity-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.entity-card.selected {
+  border: 2px solid #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.entity-card.player {
+  border-left: 4px solid #4ecdc4;
+}
+
+.entity-card.enemy {
+  border-left: 4px solid #ff6b6b;
+}
+
+.entity-card.npc {
+  border-left: 4px solid #95e1d3;
+}
+
+.entity-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.entity-card-header .entity-name {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.entity-stats {
+  font-size: 0.9rem;
+}
+
+.hp-bar {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  height: 20px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.hp-fill {
+  background: linear-gradient(90deg, #4ecdc4, #44a08d);
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 10px;
+}
+
+.hp-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 0.8rem;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.stat-line {
+  opacity: 0.9;
+  font-size: 0.8rem;
+}
+
+/* Selected Entity */
+.selected-entity {
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.selected-entity h3 {
+  margin: 0 0 15px 0;
+  color: #ffd700;
+  font-size: 1.1rem;
+}
+
+.entity-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.conditions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.condition-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.condition-tag {
+  background: #ff6b6b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+/* Spell Controls */
+.spell-controls {
+  margin-bottom: 20px;
+}
+
+.spell-controls h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
+  color: #ffd700;
+}
+
+.spell-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Add Entity Form */
+.add-entity-form {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.form-row input,
+.form-row select {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.form-row input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-row input:focus,
+.form-row select:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Buttons */
+.btn {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #a8a8a8, #8c8c8c);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #feca57, #ff9ff3);
+}
+
+.btn-magic {
+  background: linear-gradient(135deg, #a8e6cf, #dcedc8);
+  color: #333;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.btn-tiny {
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  border-radius: 6px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .combat-ui {
+    left: 10px;
+    top: 10px;
+    width: calc(100vw - 20px);
+    max-width: 350px;
+  }
+  
+  .combat-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .combat-controls {
+    justify-content: center;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.initiative-item.current {
+  animation: pulse 2s infinite;
+}
+
+.entity-card {
+  animation: slideIn 0.3s ease;
+}
+
+/* Clickable initiative styling */
+.initiative-number.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.initiative-number.clickable:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* Simple Combat Info */
+.simple-combat-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-entity-display {
+  margin: 10px 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.current-entity-display .entity-name {
+  color: #FFD700;
+}
+
+.current-entity-display .entity-type {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+.turn-actions {
+  margin-top: 12px;
+}
+
+/* Initiative Controls */
+.initiative-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 8px;
+}
+
+.initiative-controls .btn {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.initiative-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+}
+
+.initiative-item .entity-info {
+  flex: 1;
+  margin: 0 8px;
+}
+
+.initiative-item .entity-hp {
+  min-width: 60px;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* Initiative Help Text */
+.initiative-help {
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
+
+/* Enhanced Round Info */
+.round-info {
+  background: rgba(255, 215, 0, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #FFD700;
+  font-size: 14px;
+}

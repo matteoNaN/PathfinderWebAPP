@@ -1,0 +1,198 @@
+/* Tutorial Settings Styles */
+.tutorial-settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  backdrop-filter: blur(5px);
+}
+
+.tutorial-settings-modal {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border-radius: 15px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tutorial-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border-radius: 15px 15px 0 0;
+}
+
+.tutorial-settings-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.tutorial-settings-content {
+  padding: 25px;
+}
+
+.tutorial-option {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: rgba(74, 172, 254, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(74, 172, 254, 0.1);
+  transition: all 0.3s ease;
+}
+
+.tutorial-option:hover {
+  background: rgba(74, 172, 254, 0.08);
+  border-color: rgba(74, 172, 254, 0.2);
+  transform: translateY(-2px);
+}
+
+.tutorial-option h4 {
+  margin: 0 0 10px 0;
+  color: #2a5298;
+  font-size: 1.1rem;
+}
+
+.tutorial-option p {
+  margin: 0 0 15px 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.status-enabled {
+  color: #28a745;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.status-disabled {
+  color: #dc3545;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.tutorial-info {
+  background: rgba(40, 167, 69, 0.05);
+  border: 1px solid rgba(40, 167, 69, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.tutorial-info h4 {
+  margin: 0 0 15px 0;
+  color: #28a745;
+  font-size: 1.1rem;
+}
+
+.tutorial-info p {
+  margin: 0 0 10px 0;
+  color: #666;
+}
+
+.tutorial-info ul {
+  margin: 10px 0 0 0;
+  padding-left: 20px;
+  color: #666;
+}
+
+.tutorial-info li {
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+/* Button Styles */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #3d8bfe 0%, #00d4e6 100%);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #218838 0%, #1fa384 100%);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+  color: white;
+}
+
+.btn-warning:hover {
+  background: linear-gradient(135deg, #e0a800 0%, #e67300 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .tutorial-settings-modal {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+  
+  .tutorial-settings-header,
+  .tutorial-settings-content {
+    padding: 15px 20px;
+  }
+  
+  .tutorial-option {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+}
