@@ -11,6 +11,7 @@ const CombatUI: React.FC = () => {
   const [selectedEntity, setSelectedEntity] = useState<CombatEntity | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<CombatEntity | null>(null);
   const [showAddEntity, setShowAddEntity] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(window.innerWidth <= 768);
 
   const handleCombatUpdate = () => {
     setCombatState(CombatService.getCombatState());
@@ -110,11 +111,21 @@ const CombatUI: React.FC = () => {
   const hasEntities = combatState.entities.size > 0;
   
   return (
-    <div className={`combat-ui ${hasEntities ? 'has-entities' : 'no-entities'}`}>
-      {/* Combat Status Panel */}
-      <div className="combat-status">
+    <div className={`combat-ui ${hasEntities ? 'has-entities' : 'no-entities'} ${isCollapsed ? 'collapsed' : ''}`}>
+      {/* Mobile Toggle Button */}
+      <button 
+        className="mobile-toggle"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        aria-label={isCollapsed ? "Expand menu" : "Collapse menu"}
+      >
+        {isCollapsed ? '☰' : '✕'}
+      </button>
+      
+      <div className="combat-ui-content">
+        {/* Combat Status Panel */}
+        <div className="combat-status">
         <div className="combat-header">
-          <h2>🎲 Gestore Combattimento</h2>
+          <h2>⚔️ Gestore Combattimento</h2>
           <div className="combat-controls">
             {!combatState.isActive ? (
               <button 
@@ -302,7 +313,7 @@ const CombatUI: React.FC = () => {
           <h3>🚀 Avvio Rapido</h3>
           <ol>
             <li>Clicca "➕ Aggiungi Entità" per creare personaggi</li>
-            <li>Inserisci le loro statistiche D&D (PF, CA, Velocità)</li>
+            <li>Inserisci semplicemente il nome e seleziona il tipo</li>
             <li>Clicca "Inizia Combattimento" per tirare l'iniziativa</li>
             <li>Usa le frecce ↑↓ per riordinare l'iniziativa</li>
             <li>Clicca "Termina Turno" per avanzare i turni</li>
@@ -327,6 +338,7 @@ const CombatUI: React.FC = () => {
         </div>
       )}
 
+      </div>
     </div>
   );
 
@@ -354,66 +366,133 @@ const CombatUI: React.FC = () => {
 
 // Entity Card Component
 const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ entity, isSelected }) => {
+  const [showDebuffForm, setShowDebuffForm] = useState(false);
+  const [newDebuff, setNewDebuff] = useState('');
+
   const handleRemove = () => {
     CombatService.removeEntity(entity.id);
+  };
+
+  const handleAddDebuff = () => {
+    if (newDebuff.trim()) {
+      const updatedConditions = [...entity.conditions, newDebuff.trim()];
+      entity.conditions = updatedConditions;
+      setNewDebuff('');
+      setShowDebuffForm(false);
+    }
+  };
+
+  const handleRemoveDebuff = (debuffToRemove: string) => {
+    entity.conditions = entity.conditions.filter(condition => condition !== debuffToRemove);
   };
 
   return (
     <div className={`entity-card ${entity.type} ${isSelected ? 'selected' : ''}`}>
       <div className="entity-card-header">
         <div className="entity-name">{entity.name}</div>
-        <button onClick={handleRemove} className="btn btn-tiny btn-danger">×</button>
+        <div className="entity-actions">
+          <button 
+            onClick={() => setShowDebuffForm(!showDebuffForm)} 
+            className="btn btn-tiny btn-warning"
+            title="Aggiungi Debuff"
+          >
+            🎯
+          </button>
+          <button onClick={handleRemove} className="btn btn-tiny btn-danger">×</button>
+        </div>
       </div>
+      
       <div className="entity-stats">
-        <div className="hp-bar">
-          <div 
-            className="hp-fill" 
-            style={{ width: `${(entity.stats.currentHP / entity.stats.maxHP) * 100}%` }}
-          />
-          <span className="hp-text">
-            {entity.stats.currentHP}/{entity.stats.maxHP}
-          </span>
-        </div>
         <div className="stat-line">
-          CA: {entity.stats.armorClass} | Velocità: {entity.stats.speed}mt
+          PF: {entity.stats.currentHP}/{entity.stats.maxHP} | CA: {entity.stats.armorClass} | Velocità: {entity.stats.speed}mt
         </div>
       </div>
+
+      {/* Debuffs */}
+      {entity.conditions.length > 0 && (
+        <div className="conditions">
+          <div className="condition-list">
+            {entity.conditions.map((condition, index) => (
+              <span key={index} className="condition-tag">
+                {condition}
+                <button 
+                  onClick={() => handleRemoveDebuff(condition)}
+                  className="condition-remove"
+                >×</button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Add Debuff Form */}
+      {showDebuffForm && (
+        <div className="debuff-form">
+          <input
+            type="text"
+            placeholder="Inserisci nome debuff"
+            value={newDebuff}
+            onChange={(e) => setNewDebuff(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleAddDebuff()}
+            autoFocus
+          />
+          <div className="debuff-actions">
+            <button onClick={handleAddDebuff} className="btn btn-tiny btn-primary">Aggiungi</button>
+            <button onClick={() => setShowDebuffForm(false)} className="btn btn-tiny btn-secondary">Annulla</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 // Add Entity Form Component
 const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    type: EntityType.PLAYER,
-    size: CreatureSize.MEDIUM,
-    maxHP: 20,
-    armorClass: 10,
-    speed: 30
-  });
+  const [name, setName] = useState('');
+  const [type, setType] = useState<EntityType>(EntityType.PLAYER);
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [showModelUpload, setShowModelUpload] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
+      setModelFile(file);
+    } else {
+      alert('Seleziona un file GLB o GLTF valido');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) return;
+    
+    let modelPath = undefined;
+    if (modelFile) {
+      // Create object URL for the uploaded file
+      modelPath = URL.createObjectURL(modelFile);
+    }
     
     await CombatService.addEntity({
-      name: formData.name,
-      type: formData.type,
-      size: formData.size,
+      name: name.trim(),
+      type: type,
+      size: CreatureSize.MEDIUM,
       stats: {
-        maxHP: formData.maxHP,
-        currentHP: formData.maxHP,
-        armorClass: formData.armorClass,
+        maxHP: 25,
+        currentHP: 25,
+        armorClass: 12,
         initiative: 0,
-        speed: formData.speed
+        speed: 30
       },
       position: { x: 0, z: 0, gridX: 0, gridZ: 0 },
       isSelected: false,
       hasMoved: false,
       hasActed: false,
-      conditions: []
+      conditions: [],
+      modelPath: modelPath
     });
     
+    setName('');
+    setModelFile(null);
     onClose();
   };
 
@@ -424,56 +503,48 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <input
             type="text"
             placeholder="Nome Entità"
-            value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
+            autoFocus
           />
-        </div>
-        <div className="form-row">
           <select
-            value={formData.type}
-            onChange={(e) => setFormData({...formData, type: e.target.value as EntityType})}
+            value={type}
+            onChange={(e) => setType(e.target.value as EntityType)}
           >
             <option value={EntityType.PLAYER}>Giocatore</option>
             <option value={EntityType.ENEMY}>Nemico</option>
             <option value={EntityType.NPC}>PNG</option>
           </select>
-          <select
-            value={formData.size}
-            onChange={(e) => setFormData({...formData, size: e.target.value as CreatureSize})}
-          >
-            <option value={CreatureSize.TINY}>Minuscola</option>
-            <option value={CreatureSize.SMALL}>Piccola</option>
-            <option value={CreatureSize.MEDIUM}>Media</option>
-            <option value={CreatureSize.LARGE}>Grande</option>
-            <option value={CreatureSize.HUGE}>Enorme</option>
-            <option value={CreatureSize.GARGANTUAN}>Mastodontica</option>
-          </select>
         </div>
+        
         <div className="form-row">
-          <input
-            type="number"
-            placeholder="PF Massimi"
-            value={formData.maxHP}
-            onChange={(e) => setFormData({...formData, maxHP: parseInt(e.target.value)})}
-            min="1"
-          />
-          <input
-            type="number"
-            placeholder="Classe Armatura"
-            value={formData.armorClass}
-            onChange={(e) => setFormData({...formData, armorClass: parseInt(e.target.value)})}
-            min="1"
-          />
-          <input
-            type="number"
-            placeholder="Velocità (mt)"
-            value={formData.speed}
-            onChange={(e) => setFormData({...formData, speed: parseInt(e.target.value)})}
-            min="0"
-            step="5"
-          />
+          <button 
+            type="button" 
+            onClick={() => setShowModelUpload(!showModelUpload)}
+            className="btn btn-small btn-secondary"
+          >
+            {showModelUpload ? '📁 Nascondi Modello' : '🎨 Carica Modello 3D'}
+          </button>
         </div>
+
+        {showModelUpload && (
+          <div className="form-row model-upload">
+            <input
+              type="file"
+              accept=".glb,.gltf"
+              onChange={handleFileChange}
+              className="file-input"
+            />
+            {modelFile && (
+              <div className="file-info">
+                <span>📎 {modelFile.name}</span>
+                <button type="button" onClick={() => setModelFile(null)} className="btn btn-tiny">×</button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="form-actions">
           <button type="submit" className="btn btn-primary">Aggiungi Entità</button>
           <button type="button" onClick={onClose} className="btn btn-secondary">Annulla</button>

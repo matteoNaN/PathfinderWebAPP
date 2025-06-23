@@ -96,16 +96,7 @@ class MainRenderService{
             hLine.alpha = 0.7;
         }
 
-        // Add center point marker
-        const centerMarker = MeshBuilder.CreateSphere('centerMarker', {
-            diameter: 0.3
-        }, this._scene!);
-        centerMarker.position = new Vector3(0, 0.1, 0);
-        
-        const centerMaterial = new StandardMaterial('centerMaterial', this._scene!);
-        centerMaterial.diffuseColor = new Color3(1, 0.8, 0); // Gold color
-        centerMaterial.emissiveColor = new Color3(0.2, 0.16, 0);
-        centerMarker.material = centerMaterial;
+        // Center marker removed for cleaner scene
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     // private snapToGrid(position: Vector3) {

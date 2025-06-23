@@ -1,0 +1,7 @@
+{
+  "name": "pathfinder-web-app",
+  "compatibility_date": "2025-06-22",
+  "assets": {
+    "directory": "./dist"
+  }
+}

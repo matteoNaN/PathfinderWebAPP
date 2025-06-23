@@ -1,5 +1,4 @@
-import { Vector3, AbstractMesh, MeshBuilder, StandardMaterial, Scene, DynamicTexture, Matrix } from '@babylonjs/core';
-import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
+import { Vector3, AbstractMesh, MeshBuilder, StandardMaterial, Scene, DynamicTexture } from '@babylonjs/core';
 import { CombatEntity } from '../Types/Combat';
 import eventEmitter from '../Events/misurazioneEventEmitter';
 
@@ -14,7 +13,7 @@ interface StatusEffect {
 
 interface NameLabel {
   entityId: string;
-  nameText: TextBlock;
+  nameMesh: AbstractMesh;
 }
 
 interface FloatingText {
@@ -26,38 +25,78 @@ interface FloatingText {
 
 class HealthStatusService {
   private _scene: Scene | null = null;
-  private _guiTexture: AdvancedDynamicTexture | null = null;
   private _nameLabels: Map<string, NameLabel> = new Map();
   private _statusEffects: Map<string, StatusEffect[]> = new Map();
   private _floatingTexts: Map<string, FloatingText> = new Map();
 
   public initialize(scene: Scene): void {
     this._scene = scene;
-    this._guiTexture = AdvancedDynamicTexture.CreateFullscreenUI('HealthStatusUI');
     this._setupEventListeners();
   }
 
   // Name label management
   public createNameLabel(entity: CombatEntity): void {
-    if (!this._guiTexture || !entity.mesh) return;
+    if (!this._scene || !entity.mesh) return;
 
-    // Create simple name text
-    const nameText = new TextBlock(`nameLabel-${entity.id}`);
-    nameText.text = entity.name;
-    nameText.color = 'white';
-    nameText.fontSize = 16;
-    nameText.fontWeight = 'bold';
-    nameText.outlineWidth = 2;
-    nameText.outlineColor = 'black';
+    // Create 3D text mesh using dynamic texture with improved styling
+    const dynamicTexture = new DynamicTexture(`nameTexture-${entity.id}`, {width: 512, height: 128}, this._scene);
+    dynamicTexture.hasAlpha = true;
+    
+    // Clear texture and get context
+    const context = dynamicTexture.getContext() as CanvasRenderingContext2D;
+    context.clearRect(0, 0, 512, 128);
+    
+    // Draw background with rounded rectangle and gradient
+    const gradient = context.createLinearGradient(0, 0, 0, 128);
+    gradient.addColorStop(0, 'rgba(99, 91, 255, 0.9)');
+    gradient.addColorStop(1, 'rgba(124, 58, 237, 0.9)');
+    
+    // Draw rounded background
+    this._drawRoundedRect(context, 32, 24, 448, 80, 20, gradient);
+    
+    // Add border
+    context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    context.lineWidth = 2;
+    this._drawRoundedRect(context, 32, 24, 448, 80, 20);
+    context.stroke();
+    
+    // Draw text with improved styling
+    const font = 'bold 32px Arial';
+    context.font = font;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    
+    // Draw text shadow
+    context.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    context.fillText(entity.name, 258, 66);
+    
+    // Draw main text
+    context.fillStyle = 'white';
+    context.fillText(entity.name, 256, 64);
+    
+    dynamicTexture.update();
 
-    this._guiTexture.addControl(nameText);
-
+    // Create plane for text
+    const namePlane = MeshBuilder.CreatePlane(`nameLabel-${entity.id}`, {size: 3}, this._scene);
+    
     // Position above entity
-    this._updateNameLabelPosition(entity.id, entity.mesh.position);
+    const entityPos = entity.mesh.position;
+    namePlane.position = new Vector3(entityPos.x, entityPos.y + 2.5, entityPos.z);
+    
+    // Set billboard mode so text always faces camera
+    namePlane.billboardMode = AbstractMesh.BILLBOARDMODE_Y;
+
+    // Create and apply material
+    const material = new StandardMaterial(`nameMaterial-${entity.id}`, this._scene);
+    material.diffuseTexture = dynamicTexture;
+    material.emissiveTexture = dynamicTexture;
+    material.backFaceCulling = false;
+    material.alpha = 0.9;
+    namePlane.material = material;
 
     const nameLabel: NameLabel = {
       entityId: entity.id,
-      nameText
+      nameMesh: namePlane
     };
 
     this._nameLabels.set(entity.id, nameLabel);
@@ -70,14 +109,15 @@ class HealthStatusService {
     const entity = this._getEntity(entityId);
     if (!entity || !entity.mesh) return;
     
-    // Update position
-    this._updateNameLabelPosition(entityId, entity.mesh.position);
+    // Update 3D position - name mesh follows entity mesh
+    const entityPos = entity.mesh.position;
+    nameLabel.nameMesh.position = new Vector3(entityPos.x, entityPos.y + 2.5, entityPos.z);
   }
 
   public removeNameLabel(entityId: string): void {
     const nameLabel = this._nameLabels.get(entityId);
     if (nameLabel) {
-      nameLabel.nameText.dispose();
+      nameLabel.nameMesh.dispose();
       this._nameLabels.delete(entityId);
     }
   }
@@ -202,18 +242,19 @@ class HealthStatusService {
   // Update all name label positions
   public updateAllPositions(): void {
     this._nameLabels.forEach((_nameLabel, entityId) => {
-      const entity = this._getEntity(entityId);
-      if (entity && entity.mesh) {
-        // Use the entity's current mesh position directly
-        this._updateNameLabelPosition(entityId, entity.mesh.position);
-      }
+      this.updateNameLabel(entityId);
     });
+  }
+
+  // Update single entity name label position (more efficient for drag operations)
+  public updateEntityPosition(entityId: string): void {
+    this.updateNameLabel(entityId);
   }
 
   // Cleanup
   public dispose(): void {
     this._nameLabels.forEach(nameLabel => {
-      nameLabel.nameText.dispose();
+      nameLabel.nameMesh.dispose();
     });
     this._nameLabels.clear();
 
@@ -221,10 +262,6 @@ class HealthStatusService {
       text.mesh.dispose();
     });
     this._floatingTexts.clear();
-
-    if (this._guiTexture) {
-      this._guiTexture.dispose();
-    }
   }
 
   // Private methods
@@ -259,30 +296,6 @@ class HealthStatusService {
     });
   }
 
-  private _updateNameLabelPosition(entityId: string, worldPosition: Vector3): void {
-    const nameLabel = this._nameLabels.get(entityId);
-    if (!nameLabel || !this._scene) return;
-
-    // Project 3D position to screen space
-    const engine = this._scene.getEngine();
-    const camera = this._scene.activeCamera;
-    if (!camera) return;
-
-    // Create a position slightly above the entity
-    const labelWorldPos = worldPosition.clone();
-    labelWorldPos.y += 2.0; // Fixed offset above entity
-
-    const screenPos = Vector3.Project(
-      labelWorldPos,
-      Matrix.Identity(),
-      this._scene.getTransformMatrix(),
-      camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight())
-    );
-
-    // Position name label centered above entity
-    nameLabel.nameText.leftInPixels = screenPos.x;
-    nameLabel.nameText.topInPixels = screenPos.y;
-  }
 
   // Status display removed - we only show names now
 
@@ -333,6 +346,25 @@ class HealthStatusService {
 
   private _generateId(): string {
     return Math.random().toString(36).substr(2, 9);
+  }
+
+  private _drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number, fillStyle?: string | CanvasGradient): void {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    
+    if (fillStyle) {
+      ctx.fillStyle = fillStyle;
+      ctx.fill();
+    }
   }
 
   // Preset status effects

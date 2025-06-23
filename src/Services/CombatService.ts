@@ -597,10 +597,36 @@ class CombatService {
     mesh.position = area.origin;
     mesh.position.y = 0.01; // Slightly above ground
 
+    // Add center indicator
+    this._addSpellAreaCenter(mesh, area);
+
     // Add drag behavior for movement
     this._addSpellAreaInteractivity(mesh, area);
 
     return mesh;
+  }
+
+  private _addSpellAreaCenter(parentMesh: AbstractMesh, area: SpellArea): void {
+    if (!this._scene) return;
+
+    // Create a small center indicator
+    const centerIndicator = MeshBuilder.CreateCylinder(`spellCenter-${area.id}`, {
+      height: 0.2,
+      diameter: 0.3
+    }, this._scene);
+
+    // Position at the center of the spell area
+    centerIndicator.position = area.origin.clone();
+    centerIndicator.position.y = 0.15;
+
+    // Create center material
+    const centerMaterial = new StandardMaterial(`spellCenterMat-${area.id}`, this._scene);
+    centerMaterial.diffuseColor = Color3.FromHexString(area.color).scale(1.5); // Brighter version
+    centerMaterial.emissiveColor = Color3.FromHexString(area.color).scale(0.3);
+    centerIndicator.material = centerMaterial;
+
+    // Parent it to the spell area so it moves together
+    centerIndicator.parent = parentMesh;
   }
 
   private _addSpellAreaInteractivity(mesh: AbstractMesh, area: SpellArea): void {
@@ -798,8 +824,8 @@ class CombatService {
     dragBehavior.onDragObservable.add(() => {
       if (!entity.mesh) return;
       
-      // Update health bar position in real-time during drag
-      HealthStatusService.updateAllPositions();
+      // Update only this entity's label position in real-time during drag
+      HealthStatusService.updateEntityPosition(entity.id);
     });
 
     dragBehavior.onDragEndObservable.add(() => {
@@ -824,8 +850,8 @@ class CombatService {
         entity.hasMoved = true;
       }
       
-      // Final health bar position update
-      HealthStatusService.updateAllPositions();
+      // Final label position update
+      HealthStatusService.updateEntityPosition(entity.id);
       
       eventEmitter.emit('entityMoved', { entityId: entity.id, position: newPosition });
     });
