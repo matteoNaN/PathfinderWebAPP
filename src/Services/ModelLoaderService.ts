@@ -1,5 +1,6 @@
-import { Scene, AbstractMesh, Vector3, SceneLoader, AssetContainer, MeshBuilder } from '@babylonjs/core';
+import { Scene, AbstractMesh, Vector3, SceneLoader, AssetContainer, MeshBuilder, StandardMaterial, Color3 } from '@babylonjs/core';
 import '@babylonjs/loaders';
+import '@babylonjs/loaders/STL';
 import { CreatureSize } from '../Types/Combat';
 import MainRenderService from './MainRenderService';
 
@@ -91,7 +92,19 @@ class ModelLoaderService {
         
         // Create container for caching
         container = new AssetContainer(this._scene);
-        result.meshes.forEach(mesh => container!.meshes.push(mesh));
+        result.meshes.forEach(mesh => {
+          container!.meshes.push(mesh);
+          
+          // Add default material for STL files (which don't have materials)
+          if (!mesh.material && modelPath.toLowerCase().endsWith('.stl')) {
+            const defaultMaterial = new StandardMaterial(`stl-material-${entityId}`, this._scene!);
+            defaultMaterial.diffuseColor = new Color3(0.7, 0.7, 0.8); // Light gray
+            defaultMaterial.specularColor = new Color3(0.2, 0.2, 0.2);
+            mesh.material = defaultMaterial;
+            container!.materials.push(defaultMaterial);
+          }
+        });
+        
         if ((result as any).materials) {
           (result as any).materials.forEach((material: any) => container!.materials.push(material));
         }

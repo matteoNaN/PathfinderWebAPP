@@ -30,7 +30,7 @@
   position: fixed;
   left: 20px;
   top: 20px;
-  width: 380px;
+  width: min(380px, calc(100vw - 40px));
   background: white;
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-lg);
@@ -475,6 +475,48 @@
   gap: 8px;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+/* Stats Row Layout */
+.stats-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stat-input {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 80px;
+}
+
+.stat-input label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--neutral-500);
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.stat-input input {
+  padding: 6px 8px;
+  font-size: 13px;
+  text-align: center;
+  min-width: 0;
+}
+
+/* Form row with label */
+.form-row:has(label:first-child) {
+  align-items: center;
+}
+
+.form-row > label:first-child {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--neutral-600);
+  min-width: 60px;
+  margin-right: 8px;
 }
 
 /* Model Upload */
