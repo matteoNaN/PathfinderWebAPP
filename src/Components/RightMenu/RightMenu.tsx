@@ -35,7 +35,7 @@ function FloatingRightMenu({ onStartTutorial }: FloatingRightMenuProps) {
       {isExpanded && (
         <div className="menu-content">
           <div className="menu-header">
-            <h3>🎲 Strumenti D&D</h3>
+            <h3>🎲 Strumenti GDR</h3>
           </div>
           
           <MeasurementControls />

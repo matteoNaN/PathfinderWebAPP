@@ -72,7 +72,7 @@ function App() {
       <div className="App loading-state">
         <div className="loading-container">
           <div className="loading-spinner">⚡</div>
-          <h2>🎲 Simulatore di Combattimento D&D</h2>
+          <h2>🎲 Simulatore di Combattimento GDR</h2>
           <p>{loadingMessage}</p>
           <div className="loading-bar">
             <div className="loading-progress"></div>

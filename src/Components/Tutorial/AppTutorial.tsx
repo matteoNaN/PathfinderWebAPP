@@ -14,7 +14,7 @@ const AppTutorial: React.FC<AppTutorialProps> = ({ runTutorial, onTutorialComple
       target: 'body',
       content: (
         <div>
-          <h2>🎲 Benvenuto nel Simulatore di Combattimento D&D!</h2>
+          <h2>🎲 Benvenuto nel Simulatore di Combattimento GDR!</h2>
           <p>Questo tutorial ti guiderà attraverso le funzionalità principali dell'applicazione.</p>
           <p>Puoi saltare il tutorial in qualsiasi momento cliccando "Salta" o premendo ESC.</p>
         </div>
@@ -126,7 +126,7 @@ const AppTutorial: React.FC<AppTutorialProps> = ({ runTutorial, onTutorialComple
       content: (
         <div>
           <h2>🎉 Tutorial Completato!</h2>
-          <p>Ora sei pronto per gestire epici combattimenti D&D!</p>
+          <p>Ora sei pronto per gestire epici combattimenti a turni dei GDR!</p>
           <p><strong>Suggerimenti finali:</strong></p>
           <ul>
             <li>🆚 Inizia aggiungendo alcuni personaggi</li>
