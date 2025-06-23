@@ -1,5 +1,5 @@
 {
-  "name": "pathfinder-web-app",
+  "name": "pathfinder-test",
   "compatibility_date": "2025-06-22",
   "assets": {
     "directory": "./dist"
