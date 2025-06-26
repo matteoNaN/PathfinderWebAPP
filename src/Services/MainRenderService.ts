@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, DirectionalLight, SpotLight, ShadowGenerator, MeshBuilder, Color3, StandardMaterial, KeyboardEventTypes} from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, DirectionalLight, ShadowGenerator, MeshBuilder, Color3, StandardMaterial, KeyboardEventTypes} from '@babylonjs/core';
 import CombatService from "./CombatService";
 
 // D&D grid: 1 unit = 5 feet, standard combat grid
@@ -171,16 +171,7 @@ class MainRenderService{
         this._shadowGenerator.darkness = 0.3;
         
         // Additional fill light for better character visibility
-        const fillLight = new SpotLight(
-            "fillLight",
-            new Vector3(10, 15, 10),
-            new Vector3(-0.5, -1, -0.5),
-            Math.PI / 3,
-            2,
-            this._scene!
-        );
-        fillLight.intensity = 0.6;
-        fillLight.diffuse = new Color3(0.9, 0.9, 1.0);  // Cool fill light
+        
     }
 
     private resize(): void {

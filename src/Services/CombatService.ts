@@ -51,6 +51,9 @@ class CombatService {
     // Create 3D representation
     await this._createEntityMesh(newEntity);
     
+    // Create name label/billboard
+    HealthStatusService.createNameLabel(newEntity);
+    
     // Update turn order if combat is active
     if (this._combatState.isActive) {
       this._updateTurnOrder();
@@ -66,12 +69,18 @@ class CombatService {
       return;
     }
 
+    // Remove name label/billboard first
+    HealthStatusService.removeNameLabel(entityId);
+
     // Remove 3D model
     if (entity.modelPath) {
       ModelLoaderService.removeModel(entityId);
     } else if (entity.mesh) {
       entity.mesh.dispose();
     }
+
+    // Clear any range indicators for this entity
+    this.clearEntityRanges(entityId);
 
     // Remove from selected entity if it's currently selected
     if (this._combatState.selectedEntityId === entityId) {
@@ -104,6 +113,9 @@ class CombatService {
     if (entity.mesh) {
       entity.mesh.position = new Vector3(newPosition.x, entity.mesh.position.y, newPosition.z);
     }
+
+    // Update name label position
+    HealthStatusService.updateNameLabel(entityId);
 
     if (this._combatState.isActive) {
       entity.hasMoved = true;
@@ -509,9 +521,15 @@ class CombatService {
       entity.isSelected = true;
       this._combatState.selectedEntityId = entityId;
       
-      // Highlight selected entity
+      // Enhanced highlight for selected entity
       if (entity.mesh && entity.mesh.material) {
-        (entity.mesh.material as StandardMaterial).emissiveColor = new Color3(1, 1, 0); // Yellow glow
+        (entity.mesh.material as StandardMaterial).emissiveColor = new Color3(0.8, 0.8, 0); // Softer yellow glow
+      }
+      
+      // Show movement range automatically when selecting in combat
+      if (this._combatState.isActive && entity.id === this._getCurrentEntity()?.id) {
+        const entityPosition = new Vector3(entity.position.x, 0, entity.position.z);
+        MeasurementService.showMovementRange(entity.id, entityPosition, entity.stats.speed);
       }
       
       eventEmitter.emit('entitySelected', entity);
@@ -652,11 +670,15 @@ class CombatService {
       this._showSpellAreaResizeMenu(area, mesh);
     }));
 
-    // Left click to rotate (for cones and rectangles)
+    // Left click to rotate (for cones and rectangles) - optimized for smooth rotation
     mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
       if (area.type === 'cone' || area.type === 'line') {
-        mesh.rotation.y += Math.PI / 8; // Rotate by 22.5 degrees
-        eventEmitter.emit('spellAreaRotated', { areaId: area.id, rotation: mesh.rotation.y });
+        const currentRotation = mesh.rotation.y;
+        const targetRotation = currentRotation + Math.PI / 8; // Rotate by 22.5 degrees
+        
+        // Smooth rotation animation
+        this._animateRotation(mesh, currentRotation, targetRotation, 150); // 150ms animation
+        eventEmitter.emit('spellAreaRotated', { areaId: area.id, rotation: targetRotation });
       }
     }));
 
@@ -820,12 +842,12 @@ class CombatService {
     const dragBehavior = new PointerDragBehavior({ dragPlaneNormal: new Vector3(0, 1, 0) });
     dragBehavior.useObjectOrientationForDragging = false;
 
-    // Update health bar position while dragging
+    // Update billboard position while dragging
     dragBehavior.onDragObservable.add(() => {
       if (!entity.mesh) return;
       
-      // Update only this entity's label position in real-time during drag
-      HealthStatusService.updateEntityPosition(entity.id);
+      // Update entity's name label position in real-time during drag
+      HealthStatusService.updateNameLabel(entity.id);
     });
 
     dragBehavior.onDragEndObservable.add(() => {
@@ -851,7 +873,7 @@ class CombatService {
       }
       
       // Final label position update
-      HealthStatusService.updateEntityPosition(entity.id);
+      HealthStatusService.updateNameLabel(entity.id);
       
       eventEmitter.emit('entityMoved', { entityId: entity.id, position: newPosition });
     });
@@ -867,6 +889,28 @@ class CombatService {
     const snappedZ = Math.round((position.z - halfCellSize) / cellSize) * cellSize + halfCellSize;
 
     return new Vector3(snappedX, position.y, snappedZ);
+  }
+
+  private _animateRotation(mesh: AbstractMesh, fromRotation: number, toRotation: number, duration: number): void {
+    if (!this._scene) return;
+
+    const startTime = Date.now();
+    const rotationAnimation = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Use easing function for smooth animation
+      const easedProgress = 1 - Math.pow(1 - progress, 3); // Ease-out cubic
+      
+      const currentRotation = fromRotation + (toRotation - fromRotation) * easedProgress;
+      mesh.rotation.y = currentRotation;
+      
+      if (progress < 1) {
+        requestAnimationFrame(rotationAnimation);
+      }
+    };
+    
+    requestAnimationFrame(rotationAnimation);
   }
 }
 

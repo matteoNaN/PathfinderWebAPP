@@ -18,6 +18,8 @@ interface RangeIndicator {
   mesh: AbstractMesh;
 }
 
+const METES_TO_FEET = 3.281; // Conversion factor for meters to feet (1 meter = 3.281 feet)
+
 class MeasurementService {
   private _scene: Scene | null = null;
   private _measurementLines: Map<string, MeasurementLine> = new Map();
@@ -103,16 +105,16 @@ class MeasurementService {
     if (!this._isActive || !this._scene) return;
 
     if (!this._currentStartPoint) {
-      // Start new measurement
-      this._currentStartPoint = pickPoint.clone();
+      // Start new measurement - snap to grid for accuracy
+      this._currentStartPoint = this._snapToGrid(pickPoint);
       this._currentStartPoint.y = 0.02; // Slightly above ground
     } else {
-      // Complete measurement
-      const endPoint = pickPoint.clone();
+      // Complete measurement - snap to grid for accuracy
+      const endPoint = this._snapToGrid(pickPoint);
       endPoint.y = 0.02;
       
       const distance = Vector3.Distance(this._currentStartPoint, endPoint);
-      const distanceInFeet = distance * 5; // Convert to D&D feet
+      const distanceInFeet = distance * 5; // Convert to D&D feet (1 world unit = 5 feet)
       
       this.createPermanentMeasurement(this._currentStartPoint, endPoint, distanceInFeet);
       
@@ -127,10 +129,10 @@ class MeasurementService {
   public handlePointerMove(pickPoint: Vector3): void {
     if (!this._isActive || !this._currentStartPoint || !this._scene) return;
 
-    // Update active measurement line
+    // Update active measurement line - snap for visual accuracy
     this.clearActiveLine();
     
-    const endPoint = pickPoint.clone();
+    const endPoint = this._snapToGrid(pickPoint);
     endPoint.y = 0.02;
     
     // Create a more visible line with start/end indicators
@@ -157,7 +159,7 @@ class MeasurementService {
     
     // Show distance in real-time
     const distance = Vector3.Distance(this._currentStartPoint, endPoint);
-    const distanceInFeet = distance * 5;
+    const distanceInFeet = distance * METES_TO_FEET;
     
     eventEmitter.emit('liveDistanceUpdate', distanceInFeet);
   }
@@ -437,6 +439,16 @@ class MeasurementService {
 
   private generateId(): string {
     return Math.random().toString(36).substr(2, 9);
+  }
+
+  private _snapToGrid(position: Vector3): Vector3 {
+    const cellSize = 1.5; // Same as CELL_SIZE in MainRenderService (5 feet)
+    const halfCellSize = cellSize / 2;
+
+    const snappedX = Math.round((position.x - halfCellSize) / cellSize) * cellSize + halfCellSize;
+    const snappedZ = Math.round((position.z - halfCellSize) / cellSize) * cellSize + halfCellSize;
+
+    return new Vector3(snappedX, position.y, snappedZ);
   }
 
   public dispose(): void {

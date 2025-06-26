@@ -441,6 +441,7 @@
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .form-row:last-child {
@@ -450,6 +451,7 @@
 .form-row input,
 .form-row select {
   flex: 1;
+  min-width: 120px;
   background: white;
   border: 1px solid var(--neutral-300);
   border-radius: var(--border-radius);
@@ -457,6 +459,13 @@
   color: var(--neutral-700);
   font-size: 14px;
   transition: var(--transition);
+  box-sizing: border-box;
+}
+
+/* Specific styling for initiative input */
+.form-row input[type="number"] {
+  flex: 0 0 100px;
+  max-width: 100px;
 }
 
 .form-row input::placeholder {
@@ -741,10 +750,22 @@
   margin-top: 24px;
 }
 
+.quick-start-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .quick-start-tips h3 {
-  margin: 0 0 12px 0;
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
+}
+
+.quick-start-toggle {
+  text-align: center;
+  margin-top: 24px;
 }
 
 .quick-start-tips ol {
@@ -866,6 +887,18 @@
   .form-row {
     flex-direction: column;
     gap: 6px;
+  }
+  
+  .form-row input,
+  .form-row select {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .form-row input[type="number"] {
+    flex: none;
+    max-width: none;
+    width: 100%;
   }
   
   .initiative-item {

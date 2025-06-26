@@ -12,6 +12,7 @@ const CombatUI: React.FC = () => {
   const [selectedTarget, setSelectedTarget] = useState<CombatEntity | null>(null);
   const [showAddEntity, setShowAddEntity] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(window.innerWidth <= 768);
+  const [showQuickStart, setShowQuickStart] = useState(true);
 
   const handleCombatUpdate = () => {
     setCombatState(CombatService.getCombatState());
@@ -308,17 +309,38 @@ const CombatUI: React.FC = () => {
       </div>
 
       {/* Quick Tips */}
-      {!hasEntities && (
+      {!hasEntities && showQuickStart && (
         <div className="quick-start-tips">
-          <h3>🚀 Avvio Rapido</h3>
+          <div className="quick-start-header">
+            <h3>🚀 Avvio Rapido</h3>
+            <button 
+              onClick={() => setShowQuickStart(false)} 
+              className="btn btn-tiny btn-secondary"
+              title="Nascondi pannello avvio rapido"
+            >
+              ✕
+            </button>
+          </div>
           <ol>
             <li>Clicca "➕ Aggiungi Entità" per creare personaggi</li>
-            <li>Inserisci semplicemente il nome e seleziona il tipo</li>
+            <li>Inserisci nome, tipo e iniziativa</li>
             <li>Clicca "Inizia Combattimento" per tirare l'iniziativa</li>
             <li>Usa le frecce ↑↓ per riordinare l'iniziativa</li>
             <li>Clicca "Termina Turno" per avanzare i turni</li>
           </ol>
           <p><strong>💡 Suggerimenti:</strong> Premi 'M' per misurare le distanze • Trascina le entità per spostarle</p>
+        </div>
+      )}
+      
+      {/* Show Quick Start Button if hidden */}
+      {!hasEntities && !showQuickStart && (
+        <div className="quick-start-toggle">
+          <button 
+            onClick={() => setShowQuickStart(true)} 
+            className="btn btn-small btn-secondary"
+          >
+            📖 Mostra Guida Rapida
+          </button>
         </div>
       )}
 
@@ -368,6 +390,7 @@ const CombatUI: React.FC = () => {
 const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ entity, isSelected }) => {
   const [showDebuffForm, setShowDebuffForm] = useState(false);
   const [newDebuff, setNewDebuff] = useState('');
+  const [, forceUpdate] = useState(0);
 
   const handleRemove = () => {
     CombatService.removeEntity(entity.id);
@@ -375,15 +398,33 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
 
   const handleAddDebuff = () => {
     if (newDebuff.trim()) {
-      const updatedConditions = [...entity.conditions, newDebuff.trim()];
+      // Allow multiple of the same debuff type by adding a counter or unique identifier
+      const debuffName = newDebuff.trim();
+      const existingCount = entity.conditions.filter(condition => 
+        condition.startsWith(debuffName)
+      ).length;
+      
+      const finalDebuffName = existingCount > 0 ? 
+        `${debuffName} (${existingCount + 1})` : 
+        debuffName;
+      
+      const updatedConditions = [...entity.conditions, finalDebuffName];
       entity.conditions = updatedConditions;
       setNewDebuff('');
       setShowDebuffForm(false);
+      
+      // Force re-render
+      forceUpdate(prev => prev + 1);
+      eventEmitter.emit('entityUpdated', entity);
     }
   };
 
   const handleRemoveDebuff = (debuffToRemove: string) => {
     entity.conditions = entity.conditions.filter(condition => condition !== debuffToRemove);
+    // Force re-render by updating the local state
+    forceUpdate(prev => prev + 1);
+    // Also emit event for other components that might be listening
+    eventEmitter.emit('entityUpdated', entity);
   };
 
   return (
@@ -450,15 +491,16 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
 const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [name, setName] = useState('');
   const [type, setType] = useState<EntityType>(EntityType.PLAYER);
+  const [initiative, setInitiative] = useState(10);
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [showModelUpload, setShowModelUpload] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
+    if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf') || file.name.endsWith('.stl'))) {
       setModelFile(file);
     } else {
-      alert('Seleziona un file GLB o GLTF valido');
+      alert('Seleziona un file GLB, GLTF o STL valido');
     }
   };
 
@@ -480,7 +522,7 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         maxHP: 25,
         currentHP: 25,
         armorClass: 12,
-        initiative: 0,
+        initiative: initiative,
         speed: 30
       },
       position: { x: 0, z: 0, gridX: 0, gridZ: 0 },
@@ -516,6 +558,15 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <option value={EntityType.ENEMY}>Nemico</option>
             <option value={EntityType.NPC}>PNG</option>
           </select>
+          <input
+            type="number"
+            placeholder="Iniziativa"
+            value={initiative}
+            onChange={(e) => setInitiative(Number(e.target.value))}
+            min="1"
+            max="30"
+            title="Modificatore di iniziativa (1-30)"
+          />
         </div>
         
         <div className="form-row">
@@ -532,7 +583,7 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <div className="form-row model-upload">
             <input
               type="file"
-              accept=".glb,.gltf"
+              accept=".glb,.gltf,.stl"
               onChange={handleFileChange}
               className="file-input"
             />

@@ -54,9 +54,9 @@ class HealthStatusService {
     // Draw rounded background
     this._drawRoundedRect(context, 32, 24, 448, 80, 20, gradient);
     
-    // Add border
-    context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    context.lineWidth = 2;
+    // Add subtle border (instead of black border)
+    context.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    context.lineWidth = 1;
     this._drawRoundedRect(context, 32, 24, 448, 80, 20);
     context.stroke();
     
