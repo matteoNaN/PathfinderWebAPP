@@ -48,11 +48,10 @@ class CombatService {
 
     this._combatState.entities.set(id, newEntity);
     
-    // Create 3D representation
+    // Create 3D representation first
     await this._createEntityMesh(newEntity);
     
-    // Create name label/billboard
-    HealthStatusService.createNameLabel(newEntity);
+    // Don't create name label here - let the event listener handle it to avoid duplicates
     
     // Update turn order if combat is active
     if (this._combatState.isActive) {
@@ -437,12 +436,14 @@ class CombatService {
     // Try to load 3D model if modelPath is provided
     if (entity.modelPath) {
       try {
+        console.log(`Loading model for entity ${entity.id} from:`, entity.modelPath);
         mesh = await ModelLoaderService.loadModelFromUrl(
           entity.modelPath,
           entity.id,
           position,
           entity.size
         );
+        console.log(`Model loaded successfully for entity ${entity.id}:`, mesh);
       } catch (error) {
         console.warn(`Failed to load model for entity ${entity.id}:`, error);
         mesh = null;
@@ -468,6 +469,11 @@ class CombatService {
       mesh.material = material;
 
       mesh.position = new Vector3(entity.position.x, sizeMultiplier, entity.position.z);
+    }
+
+    // Ensure mesh position is set correctly
+    if (mesh) {
+      mesh.position = new Vector3(entity.position.x, mesh.position.y, entity.position.z);
     }
 
     entity.mesh = mesh;

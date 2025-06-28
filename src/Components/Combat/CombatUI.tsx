@@ -11,13 +11,26 @@ const CombatUI: React.FC = () => {
   const [selectedEntity, setSelectedEntity] = useState<CombatEntity | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<CombatEntity | null>(null);
   const [showAddEntity, setShowAddEntity] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(window.innerWidth <= 768);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(true);
 
   const handleCombatUpdate = () => {
     setCombatState(CombatService.getCombatState());
     setForceUpdate(prev => prev + 1); // Force re-render
   };
+
+  // Handle initial mobile detection and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth <= 768;
+      setIsCollapsed(isMobile);
+    };
+    
+    checkMobile(); // Check on mount
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
 
@@ -112,15 +125,28 @@ const CombatUI: React.FC = () => {
   const hasEntities = combatState.entities.size > 0;
   
   return (
-    <div className={`combat-ui ${hasEntities ? 'has-entities' : 'no-entities'} ${isCollapsed ? 'collapsed' : ''}`}>
-      {/* Mobile Toggle Button */}
-      <button 
-        className="mobile-toggle"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        aria-label={isCollapsed ? "Expand menu" : "Collapse menu"}
-      >
-        {isCollapsed ? '☰' : '✕'}
-      </button>
+    <>
+      {/* Floating Action Button - Always visible when UI is collapsed */}
+      {isCollapsed && (
+        <button 
+          className="combat-fab"
+          onClick={() => setIsCollapsed(false)}
+          aria-label="Open Combat UI"
+          title="Open Combat Manager"
+        >
+          ⚔️
+        </button>
+      )}
+      
+      <div className={`combat-ui ${hasEntities ? 'has-entities' : 'no-entities'} ${isCollapsed ? 'collapsed' : ''}`}>
+        {/* Mobile Toggle Button */}
+        <button 
+          className="mobile-toggle"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? "Expand menu" : "Collapse menu"}
+        >
+          {isCollapsed ? '☰' : '✕'}
+        </button>
       
       <div className="combat-ui-content">
         {/* Combat Status Panel */}
@@ -362,6 +388,7 @@ const CombatUI: React.FC = () => {
 
       </div>
     </div>
+    </>
   );
 
   function createSpellArea(type: 'circle' | 'cone' | 'square' | 'line') {
@@ -514,6 +541,13 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       modelPath = URL.createObjectURL(modelFile);
     }
     
+    // Generate a random position around the center to avoid stacking
+    const randomOffset = () => (Math.random() - 0.5) * 10; // Random position within 5 units of center
+    const spawnX = randomOffset();
+    const spawnZ = randomOffset();
+    const gridX = Math.round(spawnX / 1.5); // Convert to grid coordinates
+    const gridZ = Math.round(spawnZ / 1.5);
+    
     await CombatService.addEntity({
       name: name.trim(),
       type: type,
@@ -525,7 +559,7 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         initiative: initiative,
         speed: 30
       },
-      position: { x: 0, z: 0, gridX: 0, gridZ: 0 },
+      position: { x: spawnX, z: spawnZ, gridX: gridX, gridZ: gridZ },
       isSelected: false,
       hasMoved: false,
       hasActed: false,

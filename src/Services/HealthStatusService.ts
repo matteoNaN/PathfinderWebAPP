@@ -1,4 +1,4 @@
-import { Vector3, AbstractMesh, MeshBuilder, StandardMaterial, Scene, DynamicTexture } from '@babylonjs/core';
+import { Vector3, AbstractMesh, MeshBuilder, StandardMaterial, Scene, DynamicTexture, Color3 } from '@babylonjs/core';
 import { CombatEntity } from '../Types/Combat';
 import eventEmitter from '../Events/misurazioneEventEmitter';
 
@@ -37,62 +37,124 @@ class HealthStatusService {
   // Name label management
   public createNameLabel(entity: CombatEntity): void {
     if (!this._scene || !entity.mesh) return;
+    
+    // Check if label already exists to prevent duplicates
+    if (this._nameLabels.has(entity.id)) {
+      console.log(`[HealthStatusService] Name label already exists for ${entity.name}, skipping creation`);
+      return;
+    }
 
-    // Create 3D text mesh using dynamic texture with improved styling
-    const dynamicTexture = new DynamicTexture(`nameTexture-${entity.id}`, {width: 512, height: 128}, this._scene);
+    // Ensure the entity mesh has a proper position (not zero if it shouldn't be)
+    const entityPos = entity.mesh.position;
+    console.log(`[HealthStatusService] Creating name label for ${entity.name} at position:`, entityPos);
+    
+    // If the entity mesh is at origin but the entity position data suggests it shouldn't be, update mesh position first
+    if (entityPos.x === 0 && entityPos.z === 0 && (entity.position.x !== 0 || entity.position.z !== 0)) {
+      console.log(`[HealthStatusService] Correcting mesh position for ${entity.name}`);
+      entity.mesh.position = new Vector3(entity.position.x, entity.mesh.position.y, entity.position.z);
+    }
+
+    // Create prettier 3D text mesh with modern design
+    const dynamicTexture = new DynamicTexture(`nameTexture-${entity.id}`, {width: 600, height: 160}, this._scene);
     dynamicTexture.hasAlpha = true;
     
     // Clear texture and get context
     const context = dynamicTexture.getContext() as CanvasRenderingContext2D;
-    context.clearRect(0, 0, 512, 128);
+    context.clearRect(0, 0, 600, 160);
     
-    // Draw background with rounded rectangle and gradient
-    const gradient = context.createLinearGradient(0, 0, 0, 128);
-    gradient.addColorStop(0, 'rgba(99, 91, 255, 0.9)');
-    gradient.addColorStop(1, 'rgba(124, 58, 237, 0.9)');
+    // Get entity type color for theming
+    const entityColor = this._getEntityThemeColor(entity.type);
     
-    // Draw rounded background
-    this._drawRoundedRect(context, 32, 24, 448, 80, 20, gradient);
+    // Create modern gradient background
+    const gradient = context.createLinearGradient(0, 0, 0, 160);
+    gradient.addColorStop(0, `rgba(${entityColor.r}, ${entityColor.g}, ${entityColor.b}, 0.95)`);
+    gradient.addColorStop(1, `rgba(${Math.max(0, entityColor.r - 30)}, ${Math.max(0, entityColor.g - 30)}, ${Math.max(0, entityColor.b - 30)}, 0.95)`);
     
-    // Add subtle border (instead of black border)
-    context.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    context.lineWidth = 1;
-    this._drawRoundedRect(context, 32, 24, 448, 80, 20);
+    // Draw modern rounded background with shadow effect
+    const bgX = 40, bgY = 30, bgW = 520, bgH = 100, radius = 25;
+    
+    // Drop shadow
+    context.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    this._drawRoundedRect(context, bgX + 3, bgY + 3, bgW, bgH, radius, 'rgba(0, 0, 0, 0.3)');
+    
+    // Main background
+    this._drawRoundedRect(context, bgX, bgY, bgW, bgH, radius, gradient);
+    
+    // Glossy highlight on top
+    const highlightGradient = context.createLinearGradient(0, bgY, 0, bgY + bgH/2);
+    highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+    highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+    this._drawRoundedRect(context, bgX, bgY, bgW, bgH/2, radius, highlightGradient);
+    
+    // Elegant border
+    context.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    context.lineWidth = 2;
+    this._drawRoundedRect(context, bgX, bgY, bgW, bgH, radius);
     context.stroke();
     
-    // Draw text with improved styling
-    const font = 'bold 32px Arial';
-    context.font = font;
+    // Draw entity type icon
+    const iconSize = 24;
+    const iconX = bgX + 20;
+    const iconY = bgY + (bgH - iconSize) / 2;
+    context.font = `${iconSize}px Arial`;
+    context.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    const icon = this._getEntityIcon(entity.type);
+    context.fillText(icon, iconX, iconY + iconSize - 4);
+    
+    // Draw name with enhanced typography
+    const nameFont = 'bold 36px "Segoe UI", Arial, sans-serif';
+    context.font = nameFont;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     
-    // Draw text shadow
-    context.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    context.fillText(entity.name, 258, 66);
+    // Text shadow for depth
+    context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    context.fillText(entity.name, 302, 82);
     
-    // Draw main text
+    // Main text with crisp rendering
     context.fillStyle = 'white';
-    context.fillText(entity.name, 256, 64);
+    context.fillText(entity.name, 300, 80);
+    
+    // Add subtle HP indicator if needed
+    if (entity.stats.currentHP < entity.stats.maxHP) {
+      const hpText = `${entity.stats.currentHP}/${entity.stats.maxHP}`;
+      context.font = 'bold 18px Arial';
+      context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      context.fillText(hpText, 300, 110);
+    }
     
     dynamicTexture.update();
 
-    // Create plane for text
-    const namePlane = MeshBuilder.CreatePlane(`nameLabel-${entity.id}`, {size: 3}, this._scene);
+    // Create plane for text with better proportions
+    const namePlane = MeshBuilder.CreatePlane(`nameLabel-${entity.id}`, {
+      width: 4, 
+      height: 1.2,
+      sideOrientation: 2 // Double-sided
+    }, this._scene);
     
-    // Position above entity
-    const entityPos = entity.mesh.position;
-    namePlane.position = new Vector3(entityPos.x, entityPos.y + 2.5, entityPos.z);
+    // Position above entity using the updated mesh position
+    const finalEntityPos = entity.mesh.position;
+    namePlane.position = new Vector3(finalEntityPos.x, finalEntityPos.y + 3, finalEntityPos.z);
+    console.log(`[HealthStatusService] Name label positioned at:`, namePlane.position);
     
     // Set billboard mode so text always faces camera
-    namePlane.billboardMode = AbstractMesh.BILLBOARDMODE_Y;
+    namePlane.billboardMode = AbstractMesh.BILLBOARDMODE_ALL;
 
-    // Create and apply material
+    // Create enhanced material with better rendering
     const material = new StandardMaterial(`nameMaterial-${entity.id}`, this._scene);
     material.diffuseTexture = dynamicTexture;
     material.emissiveTexture = dynamicTexture;
+    material.emissiveColor = new Color3(0.2, 0.2, 0.2); // Subtle glow
     material.backFaceCulling = false;
-    material.alpha = 0.9;
+    material.alpha = 0.95;
+    material.alphaMode = 2; // Alpha blend mode
     namePlane.material = material;
+
+    // Add subtle floating animation
+    namePlane.animations = [];
+    
+    // Disable shadows for billboards to improve performance
+    namePlane.receiveShadows = false;
 
     const nameLabel: NameLabel = {
       entityId: entity.id,
@@ -364,6 +426,24 @@ class HealthStatusService {
     if (fillStyle) {
       ctx.fillStyle = fillStyle;
       ctx.fill();
+    }
+  }
+
+  private _getEntityThemeColor(type: string): {r: number, g: number, b: number} {
+    switch (type.toLowerCase()) {
+      case 'player': return {r: 34, g: 197, b: 94}; // Green
+      case 'enemy': return {r: 239, g: 68, b: 68}; // Red
+      case 'npc': return {r: 251, g: 146, b: 60}; // Orange
+      default: return {r: 99, g: 102, b: 241}; // Blue
+    }
+  }
+
+  private _getEntityIcon(type: string): string {
+    switch (type.toLowerCase()) {
+      case 'player': return '🛡️';
+      case 'enemy': return '⚔️';
+      case 'npc': return '👤';
+      default: return '❓';
     }
   }
 

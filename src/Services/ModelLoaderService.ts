@@ -193,33 +193,65 @@ class ModelLoaderService {
     }
 
     try {
-      const fileName = url.split('/').pop() || 'model';
-      const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+      console.log(`[ModelLoaderService] Loading model from URL: ${url}`);
       
-      const result = await SceneLoader.ImportMeshAsync('', baseUrl, fileName, this._scene);
-      
-      if (result.meshes.length === 0) {
-        console.error('No meshes found in model');
-        return this._createFallbackMesh(entityId, position, size);
-      }
+      // Handle blob URLs (for uploaded files) differently
+      if (url.startsWith('blob:')) {
+        console.log('[ModelLoaderService] Detected blob URL, loading directly');
+        const result = await SceneLoader.ImportMeshAsync('', '', url, this._scene);
+        
+        if (result.meshes.length === 0) {
+          console.error('[ModelLoaderService] No meshes found in blob model');
+          return this._createFallbackMesh(entityId, position, size);
+        }
 
-      const rootMesh = result.meshes[0] as AbstractMesh;
-      this._configureModel(rootMesh, entityId, position, size);
-      
-      const loadedModel: LoadedModel = {
-        mesh: rootMesh,
-        animations: result.animationGroups.map(ag => ag.name),
-        container: new AssetContainer(this._scene), // Empty container for URL models
-        isLoaded: true,
-        loadProgress: 100
-      };
-      
-      this._loadedModels.set(entityId, loadedModel);
-      
-      return rootMesh;
+        const rootMesh = result.meshes[0] as AbstractMesh;
+        this._configureModel(rootMesh, entityId, position, size);
+        
+        const loadedModel: LoadedModel = {
+          mesh: rootMesh,
+          animations: result.animationGroups.map(ag => ag.name),
+          container: new AssetContainer(this._scene),
+          isLoaded: true,
+          loadProgress: 100
+        };
+        
+        this._loadedModels.set(entityId, loadedModel);
+        
+        console.log(`[ModelLoaderService] Successfully loaded blob model for entity ${entityId}`);
+        return rootMesh;
+      } else {
+        // Handle regular URLs
+        const fileName = url.split('/').pop() || 'model';
+        const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+        
+        console.log(`[ModelLoaderService] Loading from baseUrl: ${baseUrl}, fileName: ${fileName}`);
+        const result = await SceneLoader.ImportMeshAsync('', baseUrl, fileName, this._scene);
+        
+        if (result.meshes.length === 0) {
+          console.error('[ModelLoaderService] No meshes found in model');
+          return this._createFallbackMesh(entityId, position, size);
+        }
+
+        const rootMesh = result.meshes[0] as AbstractMesh;
+        this._configureModel(rootMesh, entityId, position, size);
+        
+        const loadedModel: LoadedModel = {
+          mesh: rootMesh,
+          animations: result.animationGroups.map(ag => ag.name),
+          container: new AssetContainer(this._scene),
+          isLoaded: true,
+          loadProgress: 100
+        };
+        
+        this._loadedModels.set(entityId, loadedModel);
+        
+        console.log(`[ModelLoaderService] Successfully loaded URL model for entity ${entityId}`);
+        return rootMesh;
+      }
       
     } catch (error) {
-      console.error('Failed to load model from URL:', url, error);
+      console.error('[ModelLoaderService] Failed to load model from URL:', url, error);
       return this._createFallbackMesh(entityId, position, size);
     }
   }
@@ -363,9 +395,19 @@ class ModelLoaderService {
       this._scene
     );
     
+    // Create and apply a default material
+    const material = new StandardMaterial(`fallback-material-${entityId}`, this._scene);
+    material.diffuseColor = new Color3(0.7, 0.7, 0.8); // Light gray
+    material.specularColor = new Color3(0.2, 0.2, 0.2);
+    mesh.material = material;
+    
     mesh.position = position;
     mesh.position.y = sizeMultiplier; // Lift to ground level
     
+    // Configure the mesh like a normal model
+    this._configureModel(mesh, entityId, position, size);
+    
+    console.log(`[ModelLoaderService] Created fallback mesh for entity ${entityId}`);
     return mesh;
   }
 
