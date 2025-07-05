@@ -1,4 +1,4 @@
-import { Vector3, AbstractMesh } from '@babylonjs/core';
+import { Vector3, AbstractMesh, Node } from '@babylonjs/core';
 
 export enum EntityType {
   PLAYER = 'player',
@@ -28,6 +28,7 @@ export interface Position {
   z: number;
   gridX: number;
   gridZ: number;
+  y?: number; // Height for flying entities
 }
 
 export interface CombatEntity {
@@ -43,6 +44,9 @@ export interface CombatEntity {
   hasMoved: boolean;
   hasActed: boolean;
   conditions: string[]; // status effects like poisoned, paralyzed, etc.
+  isFlying?: boolean;
+  flyingHeight?: number; // Height in feet above ground
+  heightIndicator?: Node; // Arrow and height display
 }
 
 export interface SpellArea {
@@ -55,6 +59,7 @@ export interface SpellArea {
   origin: Vector3;
   color: string;
   mesh?: AbstractMesh;
+  centerIndicator?: AbstractMesh;
 }
 
 export interface TurnOrder {

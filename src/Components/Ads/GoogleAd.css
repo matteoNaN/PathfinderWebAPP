@@ -1,0 +1,98 @@
+/* Google Ads Styling */
+.google-ad-container {
+  margin: 20px 0;
+  text-align: center;
+  padding: 10px;
+  background: var(--neutral-100, #f8f9fa);
+  border-radius: var(--border-radius, 8px);
+  border: 1px solid var(--neutral-200, #e9ecef);
+}
+
+.google-ad-container.sidebar {
+  margin: 10px 0;
+  max-width: 160px;
+}
+
+.google-ad-container.banner {
+  width: 100%;
+  max-width: 728px;
+  height: 90px;
+  margin: 0 auto;
+}
+
+.google-ad-container.square {
+  width: 300px;
+  height: 250px;
+  margin: 0 auto;
+}
+
+.google-ad-container.mobile-banner {
+  width: 320px;
+  height: 50px;
+  margin: 0 auto;
+}
+
+.google-ad-container.responsive {
+  width: 100%;
+  min-height: 50px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .google-ad-container.banner {
+    max-width: 320px;
+    height: 50px;
+  }
+  
+  .google-ad-container.square {
+    width: 280px;
+    height: 200px;
+  }
+  
+  .google-ad-container.sidebar {
+    display: none; /* Hide sidebar ads on mobile */
+  }
+}
+
+/* Ad label styling */
+.ad-label {
+  font-size: 10px;
+  color: var(--neutral-400, #6c757d);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.ad-label::before {
+  content: "Pubblicità";
+}
+
+/* Ad container with label */
+.google-ad-with-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Fallback styling when ads fail to load */
+.adsbygoogle[data-adsbygoogle-status="unfilled"] {
+  display: none !important;
+}
+
+/* Loading state */
+.google-ad-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: var(--border-radius, 8px);
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

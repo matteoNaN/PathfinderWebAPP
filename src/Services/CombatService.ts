@@ -6,6 +6,7 @@ import MeasurementService from './MeasurementService';
 import CombatActionsService from './CombatActionsService';
 import HealthStatusService, { HealthStatusService as HealthStatusServiceClass } from './HealthStatusService';
 import SaveLoadService from './SaveLoadService';
+import FlyingService from './FlyingService';
 
 class CombatService {
   private _combatState: CombatState;
@@ -27,6 +28,7 @@ class CombatService {
     ModelLoaderService.initialize(scene);
     MeasurementService.initialize(scene);
     HealthStatusService.initialize(scene);
+    FlyingService.initialize(scene);
     
     // Set up event listener for HealthStatusService to get entity data
     eventEmitter.on('getEntity', (entityId: string, callback: (entity: CombatEntity | undefined) => void) => {
@@ -70,6 +72,9 @@ class CombatService {
 
     // Remove name label/billboard first
     HealthStatusService.removeNameLabel(entityId);
+
+    // Remove flying indicator if present
+    FlyingService.removeEntity(entity);
 
     // Remove 3D model
     if (entity.modelPath) {
@@ -115,6 +120,9 @@ class CombatService {
 
     // Update name label position
     HealthStatusService.updateNameLabel(entityId);
+
+    // Update flying indicator position if entity is flying
+    FlyingService.updateHeightIndicator(entity);
 
     if (this._combatState.isActive) {
       entity.hasMoved = true;
@@ -201,8 +209,13 @@ class CombatService {
 
   public removeSpellArea(areaId: string): void {
     const area = this._combatState.spellAreas.get(areaId);
-    if (area && area.mesh) {
-      area.mesh.dispose();
+    if (area) {
+      if (area.mesh) {
+        area.mesh.dispose();
+      }
+      if (area.centerIndicator) {
+        area.centerIndicator.dispose();
+      }
     }
     this._combatState.spellAreas.delete(areaId);
     eventEmitter.emit('spellAreaRemoved', areaId);
@@ -211,6 +224,7 @@ class CombatService {
   public clearAllSpellAreas(): void {
     this._combatState.spellAreas.forEach(area => {
       if (area.mesh) area.mesh.dispose();
+      if (area.centerIndicator) area.centerIndicator.dispose();
     });
     this._combatState.spellAreas.clear();
     eventEmitter.emit('allSpellAreasCleared');
@@ -276,10 +290,30 @@ class CombatService {
     return Vector3.Distance(pos1, pos2);
   }
 
+  // Flying Management
+  public setEntityFlying(entityId: string, height: number): void {
+    const entity = this._combatState.entities.get(entityId);
+    if (entity) {
+      FlyingService.setEntityFlying(entity, height);
+    }
+  }
+
+  public landEntity(entityId: string): void {
+    const entity = this._combatState.entities.get(entityId);
+    if (entity) {
+      FlyingService.landEntity(entity);
+    }
+  }
+
+  public getFlyingEntities(): CombatEntity[] {
+    return FlyingService.getFlyingEntities(this._combatState.entities);
+  }
+
   // Service access methods
   public getMeasurementService(): typeof MeasurementService { return MeasurementService; }
   public getCombatActionsService(): typeof CombatActionsService { return CombatActionsService; }
   public getSaveLoadService(): typeof SaveLoadService { return SaveLoadService; }
+  public getFlyingService(): typeof FlyingService { return FlyingService; }
 
   // Combat actions shortcuts
   public async performAttack(attackerId: string, targetId: string, weaponId: string): Promise<any> {
@@ -621,8 +655,8 @@ class CombatService {
     mesh.position = area.origin;
     mesh.position.y = 0.01; // Slightly above ground
 
-    // Add center indicator
-    this._addSpellAreaCenter(mesh, area);
+    // Add center indicator and store reference
+    area.centerIndicator = this._addSpellAreaCenter(mesh, area);
 
     // Add drag behavior for movement
     this._addSpellAreaInteractivity(mesh, area);
@@ -630,8 +664,8 @@ class CombatService {
     return mesh;
   }
 
-  private _addSpellAreaCenter(parentMesh: AbstractMesh, area: SpellArea): void {
-    if (!this._scene) return;
+  private _addSpellAreaCenter(parentMesh: AbstractMesh, area: SpellArea): AbstractMesh {
+    if (!this._scene) return parentMesh;
 
     // Create a small center indicator
     const centerIndicator = MeshBuilder.CreateCylinder(`spellCenter-${area.id}`, {
@@ -639,8 +673,8 @@ class CombatService {
       diameter: 0.3
     }, this._scene);
 
-    // Position at the center of the spell area
-    centerIndicator.position = area.origin.clone();
+    // Position at the center of the spell area (relative to parent)
+    centerIndicator.position = Vector3.Zero(); // Center relative to parent
     centerIndicator.position.y = 0.15;
 
     // Create center material
@@ -651,6 +685,8 @@ class CombatService {
 
     // Parent it to the spell area so it moves together
     centerIndicator.parent = parentMesh;
+    
+    return centerIndicator;
   }
 
   private _addSpellAreaInteractivity(mesh: AbstractMesh, area: SpellArea): void {
@@ -680,10 +716,10 @@ class CombatService {
     mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
       if (area.type === 'cone' || area.type === 'line') {
         const currentRotation = mesh.rotation.y;
-        const targetRotation = currentRotation + Math.PI / 8; // Rotate by 22.5 degrees
+        const targetRotation = currentRotation + Math.PI / 6; // Rotate by 30 degrees for more precise control
         
         // Smooth rotation animation
-        this._animateRotation(mesh, currentRotation, targetRotation, 150); // 150ms animation
+        this._animateRotation(mesh, currentRotation, targetRotation, 200); // 200ms animation for smoother feel
         eventEmitter.emit('spellAreaRotated', { areaId: area.id, rotation: targetRotation });
       }
     }));
@@ -703,56 +739,37 @@ class CombatService {
   }
 
   private _showSpellAreaResizeMenu(area: SpellArea, mesh: AbstractMesh): void {
+    // Emit event to show resize controls in UI instead of using prompts
+    eventEmitter.emit('showSpellAreaControls', {
+      area: area,
+      mesh: mesh,
+      onResize: (newValues: any) => {
+        this._handleSpellAreaResize(area, mesh, newValues);
+      },
+      onRotate: (rotation: number) => {
+        this._rotateSpellArea(area, mesh, rotation);
+      },
+      onDelete: () => {
+        this.removeSpellArea(area.id);
+      }
+    });
+  }
+
+  private _handleSpellAreaResize(area: SpellArea, mesh: AbstractMesh, newValues: any): void {
     if (area.type === 'cone') {
-      // Cone has radius, angle, and rotation
-      const currentRadius = area.radius || 15;
-      const currentAngle = area.angle || 60;
-      
-      const params = prompt(
-        `Cone Settings (current: radius=${currentRadius}, angle=${currentAngle}°)\nEnter: radius,angle (e.g., "20,90"):`,
-        `${currentRadius},${currentAngle}`
-      );
-      
-      if (params) {
-        const [radiusStr, angleStr] = params.split(',');
-        if (radiusStr && angleStr) {
-          const newRadius = Math.max(5, Math.min(50, Number(radiusStr.trim())));
-          const newAngle = Math.max(15, Math.min(180, Number(angleStr.trim())));
-          this._resizeCone(area, mesh, newRadius, newAngle);
-        }
-      }
+      this._resizeCone(area, mesh, newValues.radius, newValues.angle);
     } else if (area.type === 'square') {
-      // Square has width and length
-      const currentWidth = area.width || 10;
-      const currentLength = area.length || 10;
-      
-      const params = prompt(
-        `Square Settings (current: width=${currentWidth}, length=${currentLength})\nEnter: width,length (e.g., "15,20"):`,
-        `${currentWidth},${currentLength}`
-      );
-      
-      if (params) {
-        const [widthStr, lengthStr] = params.split(',');
-        if (widthStr && lengthStr) {
-          const newWidth = Math.max(5, Math.min(50, Number(widthStr.trim())));
-          const newLength = Math.max(5, Math.min(50, Number(lengthStr.trim())));
-          this._resizeSquare(area, mesh, newWidth, newLength);
-        }
-      }
+      this._resizeSquare(area, mesh, newValues.width, newValues.length);
     } else {
-      // Circle or line - simple radius/width
-      const currentSize = area.radius || area.width || 10;
-      const sizeType = area.type === 'circle' ? 'radius' : 'width';
-      
-      const newSizeStr = prompt(
-        `Resize ${area.type} ${sizeType} (current: ${currentSize} feet).\nEnter new size (5-50 feet):`, 
-        currentSize.toString()
-      );
-      
-      if (newSizeStr && !isNaN(Number(newSizeStr))) {
-        const newSize = Math.max(5, Math.min(50, Number(newSizeStr)));
-        this._resizeSpellArea(area, mesh, newSize);
-      }
+      const newSize = newValues.radius || newValues.width || 10;
+      this._resizeSpellArea(area, mesh, newSize);
+    }
+  }
+
+  private _rotateSpellArea(area: SpellArea, mesh: AbstractMesh, rotation: number): void {
+    if (mesh) {
+      mesh.rotation.y = rotation;
+      eventEmitter.emit('spellAreaRotated', { areaId: area.id, rotation });
     }
   }
 
@@ -773,8 +790,11 @@ class CombatService {
     const oldPosition = mesh.position.clone();
     const oldRotation = mesh.rotation.clone();
     
-    // Dispose old mesh
+    // Dispose old mesh and center indicator
     mesh.dispose();
+    if (area.centerIndicator) {
+      area.centerIndicator.dispose();
+    }
     
     // Recreate mesh with new size
     area.mesh = this._createSpellAreaMesh(area);
@@ -802,8 +822,11 @@ class CombatService {
     const oldPosition = mesh.position.clone();
     const oldRotation = mesh.rotation.clone();
     
-    // Dispose old mesh
+    // Dispose old mesh and center indicator
     mesh.dispose();
+    if (area.centerIndicator) {
+      area.centerIndicator.dispose();
+    }
     
     // Recreate mesh with new parameters
     area.mesh = this._createSpellAreaMesh(area);
@@ -827,8 +850,11 @@ class CombatService {
     const oldPosition = mesh.position.clone();
     const oldRotation = mesh.rotation.clone();
     
-    // Dispose old mesh
+    // Dispose old mesh and center indicator
     mesh.dispose();
+    if (area.centerIndicator) {
+      area.centerIndicator.dispose();
+    }
     
     // Recreate mesh with new dimensions
     area.mesh = this._createSpellAreaMesh(area);
@@ -854,6 +880,9 @@ class CombatService {
       
       // Update entity's name label position in real-time during drag
       HealthStatusService.updateNameLabel(entity.id);
+      
+      // Update flying indicator position if entity is flying
+      FlyingService.updateHeightIndicator(entity);
     });
 
     dragBehavior.onDragEndObservable.add(() => {
@@ -880,6 +909,9 @@ class CombatService {
       
       // Final label position update
       HealthStatusService.updateNameLabel(entity.id);
+      
+      // Final flying indicator position update
+      FlyingService.updateHeightIndicator(entity);
       
       eventEmitter.emit('entityMoved', { entityId: entity.id, position: newPosition });
     });

@@ -5,6 +5,9 @@ import Distance from './Components/Distance/Distance'
 import FloatingRightMenu from './Components/RightMenu/RightMenu'
 import CombatUI from './Components/Combat/CombatUI'
 import AppTutorial from './Components/Tutorial/AppTutorial'
+import NotesPanel from './Components/Notes/NotesPanel'
+// import AdBanner from './Components/Ads/AdBanner'
+// import { initializeAdSense } from './config/adsConfig'
 import MainRenderService from './Services/MainRenderService';
 
 function App() {
@@ -19,6 +22,9 @@ function App() {
       try {
         setLoadingMessage('Inizializzazione del motore 3D...');
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+        
+        // setLoadingMessage('Inizializzazione annunci...');
+        // initializeAdSense(); // Initialize Google AdSense
         
         setLoadingMessage('Caricamento completato!');
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -84,6 +90,9 @@ function App() {
 
   return (
     <div className="App">
+      {/* Ads hidden for future integration */}
+      {/* <AdBanner type="banner" className="top-ad" /> */}
+      
       {/* Main 3D Canvas */}
       <Canvas />
       
@@ -96,10 +105,19 @@ function App() {
       {/* Distance Measurement Display */}
       <Distance />
       
+      {/* Notes Panel */}
+      <NotesPanel />
+      
+      {/* Ads hidden for future integration */}
+      {/* <AdBanner type="sidebar" className="sidebar-ad" /> */}
+      
       {/* Camera Controls Info */}
       <div className="camera-controls-info">
         <small>{MainRenderService.getCameraControlsInfo()}</small>
       </div>
+      
+      {/* Ads hidden for future integration */}
+      {/* <AdBanner type="mobile-banner" className="bottom-mobile-ad" /> */}
       
       {/* Tutorial Component */}
       <AppTutorial 

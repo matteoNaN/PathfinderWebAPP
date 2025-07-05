@@ -3,6 +3,7 @@ import { Vector3 } from '@babylonjs/core';
 import { CombatEntity, CombatState, EntityType, CreatureSize } from '../../Types/Combat';
 import CombatService from '../../Services/CombatService';
 import eventEmitter from '../../Events/misurazioneEventEmitter';
+// import AdBanner from '../Ads/AdBanner';
 import './CombatUI.css';
 
 const CombatUI: React.FC = () => {
@@ -13,6 +14,7 @@ const CombatUI: React.FC = () => {
   const [showAddEntity, setShowAddEntity] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(true);
+  const [spellAreaControls, setSpellAreaControls] = useState<any>(null);
 
   const handleCombatUpdate = () => {
     setCombatState(CombatService.getCombatState());
@@ -63,6 +65,10 @@ const CombatUI: React.FC = () => {
       handleCombatUpdate();
     };
 
+    const handleShowSpellAreaControls = (data: any) => {
+      setSpellAreaControls(data);
+    };
+
     eventEmitter.on('combatStarted', handleCombatUpdate);
     eventEmitter.on('combatEnded', handleCombatUpdate);
     eventEmitter.on('turnChanged', handleCombatUpdate);
@@ -70,6 +76,7 @@ const CombatUI: React.FC = () => {
     eventEmitter.on('entitySelected', handleEntitySelected);
     eventEmitter.on('entityAdded', handleCombatUpdate);
     eventEmitter.on('entityRemoved', handleEntityRemoved);
+    eventEmitter.on('showSpellAreaControls', handleShowSpellAreaControls);
 
     return () => {
       eventEmitter.off('combatStarted', handleCombatUpdate);
@@ -79,6 +86,7 @@ const CombatUI: React.FC = () => {
       eventEmitter.off('entitySelected', handleEntitySelected);
       eventEmitter.off('entityAdded', handleCombatUpdate);
       eventEmitter.off('entityRemoved', handleEntityRemoved);
+      eventEmitter.off('showSpellAreaControls', handleShowSpellAreaControls);
     };
   }, [selectedEntity, handleCombatUpdate]);
 
@@ -300,28 +308,28 @@ const CombatUI: React.FC = () => {
           <button 
             onClick={() => createSpellArea('circle')}
             className="btn btn-small btn-magic"
-            title="Crea area circolare (trascina per muovere, click destro per ridimensionare)"
+            title="Crea area circolare (trascina per muovere, click destro per controlli)"
           >
             ⭕ Cerchio
           </button>
           <button 
             onClick={() => createSpellArea('cone')}
             className="btn btn-small btn-magic"
-            title="Crea area conica (click sinistro per ruotare, click destro per ridimensionare)"
+            title="Crea area conica (click sinistro per ruotare, click destro per controlli)"
           >
             🔺 Cono
           </button>
           <button 
             onClick={() => createSpellArea('square')}
             className="btn btn-small btn-magic"
-            title="Crea area quadrata (trascina per muovere, click destro per ridimensionare)"
+            title="Crea area quadrata (trascina per muovere, click destro per controlli)"
           >
             ⬜ Quadrato
           </button>
           <button 
             onClick={() => createSpellArea('line')}
             className="btn btn-small btn-magic"
-            title="Crea area lineare (click sinistro per ruotare, click destro per ridimensionare)"
+            title="Crea area lineare (click sinistro per ruotare, click destro per controlli)"
           >
             📏 Linea
           </button>
@@ -386,8 +394,23 @@ const CombatUI: React.FC = () => {
         </div>
       )}
 
+      {/* Ads hidden for future integration */}
+      {/* {hasEntities && (
+        <div className="combat-ad-section">
+          <AdBanner type="square" className="combat-square-ad" showLabel={false} />
+        </div>
+      )} */}
+
       </div>
     </div>
+    
+    {/* Spell Area Controls Modal */}
+    {spellAreaControls && (
+      <SpellAreaControlsModal
+        controls={spellAreaControls}
+        onClose={() => setSpellAreaControls(null)}
+      />
+    )}
     </>
   );
 
@@ -417,6 +440,9 @@ const CombatUI: React.FC = () => {
 const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ entity, isSelected }) => {
   const [showDebuffForm, setShowDebuffForm] = useState(false);
   const [newDebuff, setNewDebuff] = useState('');
+  const [showEditTools, setShowEditTools] = useState(false);
+  const [showFlyingControls, setShowFlyingControls] = useState(false);
+  const [flyingHeight, setFlyingHeight] = useState(entity.flyingHeight || 10);
   const [, forceUpdate] = useState(0);
 
   const handleRemove = () => {
@@ -454,11 +480,73 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
     eventEmitter.emit('entityUpdated', entity);
   };
 
+  const handleSetFlying = () => {
+    CombatService.setEntityFlying(entity.id, flyingHeight);
+    entity.isFlying = true;
+    entity.flyingHeight = flyingHeight;
+    setShowFlyingControls(false);
+    forceUpdate(prev => prev + 1);
+  };
+
+  const handleLand = () => {
+    CombatService.landEntity(entity.id);
+    entity.isFlying = false;
+    entity.flyingHeight = 0;
+    forceUpdate(prev => prev + 1);
+  };
+
+  const handleEditHP = () => {
+    const newHP = prompt(`Modifica PF (max: ${entity.stats.maxHP}):`, entity.stats.currentHP.toString());
+    if (newHP && !isNaN(Number(newHP))) {
+      const hp = Math.max(0, Math.min(entity.stats.maxHP, Number(newHP)));
+      entity.stats.currentHP = hp;
+      forceUpdate(prev => prev + 1);
+      eventEmitter.emit('entityUpdated', entity);
+    }
+  };
+
+  const handleEditAC = () => {
+    const newAC = prompt(`Modifica CA:`, entity.stats.armorClass.toString());
+    if (newAC && !isNaN(Number(newAC))) {
+      entity.stats.armorClass = Math.max(1, Number(newAC));
+      forceUpdate(prev => prev + 1);
+      eventEmitter.emit('entityUpdated', entity);
+    }
+  };
+
+  const handleEditSpeed = () => {
+    const newSpeed = prompt(`Modifica Velocità (piedi):`, entity.stats.speed.toString());
+    if (newSpeed && !isNaN(Number(newSpeed))) {
+      entity.stats.speed = Math.max(0, Number(newSpeed));
+      forceUpdate(prev => prev + 1);
+      eventEmitter.emit('entityUpdated', entity);
+    }
+  };
+
+  const handleEditName = () => {
+    const newName = prompt(`Modifica Nome:`, entity.name);
+    if (newName && newName.trim()) {
+      entity.name = newName.trim();
+      forceUpdate(prev => prev + 1);
+      eventEmitter.emit('entityUpdated', entity);
+    }
+  };
+
   return (
-    <div className={`entity-card ${entity.type} ${isSelected ? 'selected' : ''}`}>
+    <div className={`entity-card ${entity.type} ${isSelected ? 'selected' : ''} ${entity.isFlying ? 'flying' : ''}`}>
       <div className="entity-card-header">
-        <div className="entity-name">{entity.name}</div>
+        <div className="entity-name" onClick={handleEditName} title="Clicca per modificare nome">
+          {entity.name}
+          {entity.isFlying && <span className="flying-indicator">✈️ {entity.flyingHeight}ft</span>}
+        </div>
         <div className="entity-actions">
+          <button 
+            onClick={() => setShowEditTools(!showEditTools)} 
+            className="btn btn-tiny btn-secondary"
+            title="Strumenti di modifica"
+          >
+            ⚙️
+          </button>
           <button 
             onClick={() => setShowDebuffForm(!showDebuffForm)} 
             className="btn btn-tiny btn-warning"
@@ -472,9 +560,67 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
       
       <div className="entity-stats">
         <div className="stat-line">
-          PF: {entity.stats.currentHP}/{entity.stats.maxHP} | CA: {entity.stats.armorClass} | Velocità: {entity.stats.speed}mt
+          <span onClick={handleEditHP} title="Clicca per modificare" className="editable-stat">
+            PF: {entity.stats.currentHP}/{entity.stats.maxHP}
+          </span> | 
+          <span onClick={handleEditAC} title="Clicca per modificare" className="editable-stat">
+            CA: {entity.stats.armorClass}
+          </span> | 
+          <span onClick={handleEditSpeed} title="Clicca per modificare" className="editable-stat">
+            Velocità: {entity.stats.speed}mt
+          </span>
         </div>
       </div>
+
+      {/* Edit Tools Panel */}
+      {showEditTools && (
+        <div className="edit-tools-panel">
+          <div className="edit-tools-header">
+            <h4>🛠️ Strumenti di Modifica</h4>
+          </div>
+          <div className="edit-tools-grid">
+            <button onClick={handleEditHP} className="btn btn-small">📊 Modifica PF</button>
+            <button onClick={handleEditAC} className="btn btn-small">🛡️ Modifica CA</button>
+            <button onClick={handleEditSpeed} className="btn btn-small">🏃 Modifica Velocità</button>
+            <button onClick={handleEditName} className="btn btn-small">📝 Modifica Nome</button>
+            
+            {/* Flying Controls */}
+            {entity.isFlying ? (
+              <button onClick={handleLand} className="btn btn-small btn-warning">
+                ⬇️ Atterra
+              </button>
+            ) : (
+              <button 
+                onClick={() => setShowFlyingControls(!showFlyingControls)} 
+                className="btn btn-small btn-magic"
+              >
+                ✈️ Vola
+              </button>
+            )}
+          </div>
+          
+          {/* Flying Height Controls */}
+          {showFlyingControls && !entity.isFlying && (
+            <div className="flying-controls">
+              <h5>Controlli Volo</h5>
+              <div className="height-control">
+                <label>Altezza (piedi):</label>
+                <input
+                  type="number"
+                  min="5"
+                  max="200"
+                  step="5"
+                  value={flyingHeight}
+                  onChange={(e) => setFlyingHeight(Number(e.target.value))}
+                />
+                <button onClick={handleSetFlying} className="btn btn-small btn-primary">
+                  Decolla
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Debuffs */}
       {entity.conditions.length > 0 && (
@@ -635,6 +781,188 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <button type="button" onClick={onClose} className="btn btn-secondary">Annulla</button>
         </div>
       </form>
+    </div>
+  );
+};
+
+// Spell Area Controls Modal Component
+const SpellAreaControlsModal: React.FC<{
+  controls: any;
+  onClose: () => void;
+}> = ({ controls, onClose }) => {
+  const [values, setValues] = useState(() => {
+    const area = controls.area;
+    return {
+      radius: area.radius || 15,
+      width: area.width || 10,
+      length: area.length || 10,
+      angle: area.angle || 60,
+      rotation: 0
+    };
+  });
+
+  const handleApply = () => {
+    controls.onResize(values);
+    onClose();
+  };
+
+  const handleRotate = (direction: number) => {
+    const newRotation = values.rotation + (direction * 30 * Math.PI / 180); // 30 degrees
+    setValues(prev => ({ ...prev, rotation: newRotation }));
+    controls.onRotate(newRotation);
+  };
+
+  const handleQuickSize = (multiplier: number) => {
+    const area = controls.area;
+    const newValues = { ...values };
+    
+    if (area.type === 'circle' || area.type === 'cone') {
+      newValues.radius = Math.max(5, Math.min(50, values.radius * multiplier));
+    } else {
+      newValues.width = Math.max(5, Math.min(50, values.width * multiplier));
+      if (area.type === 'square') {
+        newValues.length = Math.max(5, Math.min(50, values.length * multiplier));
+      }
+    }
+    
+    setValues(newValues);
+  };
+
+  const area = controls.area;
+  
+  return (
+    <div className="spell-area-controls-modal">
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-content">
+        <div className="modal-header">
+          <h3>🔮 Controlli Area Incantesimo</h3>
+          <button onClick={onClose} className="btn btn-tiny">✕</button>
+        </div>
+        
+        <div className="modal-body">
+          <div className="area-info">
+            <span className="area-type">{area.type.toUpperCase()}</span>
+            <span className="area-color" style={{ backgroundColor: area.color }}></span>
+          </div>
+          
+          {/* Size Controls */}
+          <div className="size-controls">
+            <h4>Dimensioni</h4>
+            <div className="quick-size-buttons">
+              <button onClick={() => handleQuickSize(0.5)} className="btn btn-small">½</button>
+              <button onClick={() => handleQuickSize(0.75)} className="btn btn-small">¾</button>
+              <button onClick={() => handleQuickSize(1.25)} className="btn btn-small">1.25×</button>
+              <button onClick={() => handleQuickSize(1.5)} className="btn btn-small">1.5×</button>
+              <button onClick={() => handleQuickSize(2)} className="btn btn-small">2×</button>
+            </div>
+            
+            {area.type === 'circle' && (
+              <div className="control-row">
+                <label>Raggio: {values.radius} piedi</label>
+                <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  value={values.radius}
+                  onChange={(e) => setValues(prev => ({ ...prev, radius: Number(e.target.value) }))}
+                />
+              </div>
+            )}
+            
+            {area.type === 'cone' && (
+              <>
+                <div className="control-row">
+                  <label>Raggio: {values.radius} piedi</label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="50"
+                    value={values.radius}
+                    onChange={(e) => setValues(prev => ({ ...prev, radius: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="control-row">
+                  <label>Angolo: {values.angle}°</label>
+                  <input
+                    type="range"
+                    min="15"
+                    max="180"
+                    value={values.angle}
+                    onChange={(e) => setValues(prev => ({ ...prev, angle: Number(e.target.value) }))}
+                  />
+                </div>
+              </>
+            )}
+            
+            {area.type === 'square' && (
+              <>
+                <div className="control-row">
+                  <label>Larghezza: {values.width} piedi</label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="50"
+                    value={values.width}
+                    onChange={(e) => setValues(prev => ({ ...prev, width: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="control-row">
+                  <label>Lunghezza: {values.length} piedi</label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="50"
+                    value={values.length}
+                    onChange={(e) => setValues(prev => ({ ...prev, length: Number(e.target.value) }))}
+                  />
+                </div>
+              </>
+            )}
+            
+            {area.type === 'line' && (
+              <>
+                <div className="control-row">
+                  <label>Larghezza: {values.width} piedi</label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="50"
+                    value={values.width}
+                    onChange={(e) => setValues(prev => ({ ...prev, width: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="control-row">
+                  <label>Lunghezza: {values.length} piedi</label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="50"
+                    value={values.length}
+                    onChange={(e) => setValues(prev => ({ ...prev, length: Number(e.target.value) }))}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Rotation Controls */}
+          {(area.type === 'cone' || area.type === 'line') && (
+            <div className="rotation-controls">
+              <h4>Rotazione</h4>
+              <div className="rotation-buttons">
+                <button onClick={() => handleRotate(-1)} className="btn btn-small">↶ -30°</button>
+                <button onClick={() => handleRotate(1)} className="btn btn-small">↷ +30°</button>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="modal-footer">
+          <button onClick={handleApply} className="btn btn-primary">Applica</button>
+          <button onClick={controls.onDelete} className="btn btn-danger">Elimina</button>
+          <button onClick={onClose} className="btn btn-secondary">Chiudi</button>
+        </div>
+      </div>
     </div>
   );
 };

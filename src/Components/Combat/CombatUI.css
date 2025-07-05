@@ -45,6 +45,298 @@
   transition: var(--transition);
 }
 
+/* Spell Area Controls Modal */
+.spell-area-controls-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 500px;
+  width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--neutral-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--neutral-100);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--neutral-700);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid var(--neutral-200);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: var(--neutral-100);
+}
+
+.area-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: var(--neutral-100);
+  border-radius: var(--border-radius);
+}
+
+.area-type {
+  font-weight: 600;
+  color: var(--neutral-600);
+  font-size: 14px;
+}
+
+.area-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: var(--shadow-sm);
+}
+
+.size-controls h4,
+.rotation-controls h4 {
+  margin: 0 0 15px 0;
+  color: var(--neutral-600);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.quick-size-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.control-row {
+  margin-bottom: 15px;
+}
+
+.control-row label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--neutral-600);
+  font-size: 14px;
+}
+
+.control-row input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--neutral-200);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.control-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.control-row input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+  border: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.rotation-controls {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--neutral-200);
+}
+
+.rotation-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Combat Ad Section */
+.combat-ad-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--neutral-200);
+  text-align: center;
+}
+
+.combat-square-ad {
+  margin: 0 auto;
+  max-width: 300px;
+}
+
+/* Hide combat ads on mobile or when UI is collapsed */
+@media (max-width: 768px) {
+  .combat-ad-section {
+    display: none;
+  }
+}
+
+.combat-ui.collapsed .combat-ad-section {
+  display: none;
+}
+
+/* Flying Entity Styles */
+.entity-card.flying {
+  border-left: 4px solid #4ecdc4;
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.flying-indicator {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #4ecdc4;
+  font-weight: 600;
+}
+
+/* Editable Stats */
+.editable-stat {
+  cursor: pointer;
+  transition: var(--transition);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.editable-stat:hover {
+  background: var(--neutral-200);
+  color: var(--primary-color);
+}
+
+/* Edit Tools Panel */
+.edit-tools-panel {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius);
+  background: var(--neutral-100);
+}
+
+.edit-tools-header h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: var(--neutral-600);
+}
+
+.edit-tools-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.edit-tools-grid .btn {
+  font-size: 12px;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+/* Flying Controls */
+.flying-controls {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--neutral-300);
+}
+
+.flying-controls h5 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: var(--neutral-600);
+}
+
+.height-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.height-control label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--neutral-600);
+  white-space: nowrap;
+}
+
+.height-control input {
+  width: 70px;
+  padding: 4px 6px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.height-control .btn {
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+/* Mobile Responsiveness for Edit Tools */
+@media (max-width: 768px) {
+  .edit-tools-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .height-control {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .height-control input {
+    width: 100%;
+  }
+}
+
 /* Floating Action Button (FAB) - Always visible when UI is collapsed */
 .combat-fab {
   position: fixed;
