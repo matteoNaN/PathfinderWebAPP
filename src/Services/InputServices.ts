@@ -122,7 +122,7 @@ private _addUISlider(targetMesh: AbstractMesh): void {
               break;
           }
         }
-      });
+      }, 2); // Use lower priority (2) to avoid conflicts with drawing (-1) and measurement (1)
     }
   }
 

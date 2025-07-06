@@ -47,7 +47,7 @@ class MeasurementService {
           this._handlePointerMove(pointerInfo);
           break;
       }
-    });
+    }, 1); // Use lower priority (1) so drawing service (priority -1) gets events first
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

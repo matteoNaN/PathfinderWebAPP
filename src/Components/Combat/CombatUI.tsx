@@ -15,6 +15,7 @@ const CombatUI: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(true);
   const [spellAreaControls, setSpellAreaControls] = useState<any>(null);
+  const [showSaveLoadMenu, setShowSaveLoadMenu] = useState(false);
 
   const handleCombatUpdate = () => {
     setCombatState(CombatService.getCombatState());
@@ -179,6 +180,13 @@ const CombatUI: React.FC = () => {
                 <div className="round-info">Round {combatState.round}</div>
               </>
             )}
+            <button 
+              onClick={() => setShowSaveLoadMenu(!showSaveLoadMenu)}
+              className="btn btn-secondary"
+              title="Salva/Carica partita"
+            >
+              💾 Partita
+            </button>
           </div>
         </div>
       </div>
@@ -409,6 +417,21 @@ const CombatUI: React.FC = () => {
       <SpellAreaControlsModal
         controls={spellAreaControls}
         onClose={() => setSpellAreaControls(null)}
+      />
+    )}
+    
+    {/* Save/Load Menu */}
+    {showSaveLoadMenu && (
+      <SaveLoadMenu
+        onClose={() => setShowSaveLoadMenu(false)}
+        onSaved={() => {
+          setShowSaveLoadMenu(false);
+          handleCombatUpdate();
+        }}
+        onLoaded={() => {
+          setShowSaveLoadMenu(false);
+          handleCombatUpdate();
+        }}
       />
     )}
     </>
@@ -961,6 +984,280 @@ const SpellAreaControlsModal: React.FC<{
           <button onClick={handleApply} className="btn btn-primary">Applica</button>
           <button onClick={controls.onDelete} className="btn btn-danger">Elimina</button>
           <button onClick={onClose} className="btn btn-secondary">Chiudi</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Save/Load Menu Component
+const SaveLoadMenu: React.FC<{
+  onClose: () => void;
+  onSaved: () => void;
+  onLoaded: () => void;
+}> = ({ onClose, onSaved, onLoaded }) => {
+  const [activeTab, setActiveTab] = useState<'save' | 'load' | 'export'>('save');
+  const [saveName, setSaveName] = useState('');
+  const [saveDescription, setSaveDescription] = useState('');
+  const [savedEncounters, setSavedEncounters] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    loadSavedEncounters();
+  }, []);
+
+  const loadSavedEncounters = () => {
+    const encounters = CombatService.getSaveLoadService().getSavedEncounters();
+    setSavedEncounters(encounters);
+  };
+
+  const handleSave = async () => {
+    if (!saveName.trim()) {
+      alert('Per favore inserisci un nome per il salvataggio');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      CombatService.saveEncounter(saveName, saveDescription);
+      alert('💾 Partita salvata con successo!');
+      setSaveName('');
+      setSaveDescription('');
+      loadSavedEncounters();
+      onSaved();
+    } catch (error) {
+      alert('❌ Errore nel salvataggio: ' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoad = async (encounterId: string) => {
+    setIsLoading(true);
+    try {
+      const success = CombatService.loadEncounter(encounterId);
+      if (success) {
+        alert('📂 Partita caricata con successo!');
+        onLoaded();
+      } else {
+        alert('❌ Errore nel caricamento della partita');
+      }
+    } catch (error) {
+      alert('❌ Errore nel caricamento: ' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleExport = (encounterId: string) => {
+    try {
+      CombatService.getSaveLoadService().exportEncounter(encounterId);
+      alert('📤 Partita esportata con successo!');
+    } catch (error) {
+      alert('❌ Errore nell\'esportazione: ' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+    }
+  };
+
+  const handleImport = () => {
+    const input = CombatService.getSaveLoadService().createFileInput();
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        setIsLoading(true);
+        try {
+          await CombatService.getSaveLoadService().importEncounter(file);
+          alert('📥 Partita importata con successo!');
+          loadSavedEncounters();
+          onLoaded();
+        } catch (error) {
+          alert('❌ Errore nell\'importazione: ' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    input.click();
+  };
+
+  const handleDelete = (encounterId: string, encounterName: string) => {
+    if (confirm(`Sei sicuro di voler eliminare "${encounterName}"?`)) {
+      const success = CombatService.getSaveLoadService().deleteEncounter(encounterId);
+      if (success) {
+        alert('🗑️ Partita eliminata con successo!');
+        loadSavedEncounters();
+      } else {
+        alert('❌ Errore nell\'eliminazione della partita');
+      }
+    }
+  };
+
+  const handleQuickSave = () => {
+    setIsLoading(true);
+    try {
+      CombatService.getSaveLoadService().quickSave(CombatService.getCombatState(), []);
+      alert('⚡ Salvataggio rapido completato!');
+      loadSavedEncounters();
+      onSaved();
+    } catch (error) {
+      alert('❌ Errore nel salvataggio rapido: ' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="save-load-menu-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="save-load-menu-modal">
+        <div className="modal-header">
+          <h3>💾 Gestione Salvataggi</h3>
+          <button onClick={onClose} className="btn btn-tiny">✕</button>
+        </div>
+        
+        <div className="modal-tabs">
+          <button 
+            className={`tab-button ${activeTab === 'save' ? 'active' : ''}`}
+            onClick={() => setActiveTab('save')}
+          >
+            💾 Salva
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'load' ? 'active' : ''}`}
+            onClick={() => setActiveTab('load')}
+          >
+            📂 Carica
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'export' ? 'active' : ''}`}
+            onClick={() => setActiveTab('export')}
+          >
+            📤 Esporta/Importa
+          </button>
+        </div>
+
+        <div className="modal-content">
+          {activeTab === 'save' && (
+            <div className="save-tab">
+              <div className="form-group">
+                <label>Nome Partita:</label>
+                <input
+                  type="text"
+                  value={saveName}
+                  onChange={(e) => setSaveName(e.target.value)}
+                  placeholder="Inserisci nome partita..."
+                  maxLength={50}
+                />
+              </div>
+              <div className="form-group">
+                <label>Descrizione (opzionale):</label>
+                <textarea
+                  value={saveDescription}
+                  onChange={(e) => setSaveDescription(e.target.value)}
+                  placeholder="Descrizione della partita..."
+                  rows={3}
+                  maxLength={200}
+                />
+              </div>
+              <div className="save-buttons">
+                <button 
+                  onClick={handleSave}
+                  className="btn btn-primary"
+                  disabled={isLoading || !saveName.trim()}
+                >
+                  {isLoading ? '⏳ Salvataggio...' : '💾 Salva Partita'}
+                </button>
+                <button 
+                  onClick={handleQuickSave}
+                  className="btn btn-secondary"
+                  disabled={isLoading}
+                >
+                  {isLoading ? '⏳ Salvataggio...' : '⚡ Salvataggio Rapido'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'load' && (
+            <div className="load-tab">
+              <div className="encounters-list">
+                {savedEncounters.length === 0 ? (
+                  <div className="no-encounters">
+                    <p>📂 Nessuna partita salvata</p>
+                    <p>Crea il tuo primo salvataggio per iniziare!</p>
+                  </div>
+                ) : (
+                  savedEncounters.map((encounter) => (
+                    <div key={encounter.id} className="encounter-item">
+                      <div className="encounter-info">
+                        <h4>{encounter.name}</h4>
+                        <p>{encounter.description}</p>
+                        <div className="encounter-meta">
+                          <span>🏴‍☠️ {encounter.entityCount} entità</span>
+                          <span>📅 {CombatService.getSaveLoadService().formatTimestamp(encounter.timestamp)}</span>
+                        </div>
+                      </div>
+                      <div className="encounter-actions">
+                        <button 
+                          onClick={() => handleLoad(encounter.id)}
+                          className="btn btn-primary btn-small"
+                          disabled={isLoading}
+                        >
+                          📂 Carica
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(encounter.id, encounter.name)}
+                          className="btn btn-danger btn-small"
+                          disabled={isLoading}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'export' && (
+            <div className="export-tab">
+              <div className="export-section">
+                <h4>📤 Esporta Partite</h4>
+                <p>Esporta le tue partite salvate come file JSON per condividerle o fare backup.</p>
+                <div className="encounters-list">
+                  {savedEncounters.length === 0 ? (
+                    <p>📂 Nessuna partita da esportare</p>
+                  ) : (
+                    savedEncounters.map((encounter) => (
+                      <div key={encounter.id} className="encounter-item">
+                        <div className="encounter-info">
+                          <h4>{encounter.name}</h4>
+                          <span>📅 {CombatService.getSaveLoadService().formatTimestamp(encounter.timestamp)}</span>
+                        </div>
+                        <button 
+                          onClick={() => handleExport(encounter.id)}
+                          className="btn btn-secondary btn-small"
+                        >
+                          📤 Esporta
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              
+              <div className="import-section">
+                <h4>📥 Importa Partite</h4>
+                <p>Importa partite salvate da file JSON.</p>
+                <button 
+                  onClick={handleImport}
+                  className="btn btn-primary"
+                  disabled={isLoading}
+                >
+                  {isLoading ? '⏳ Importazione...' : '📥 Importa da File'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
