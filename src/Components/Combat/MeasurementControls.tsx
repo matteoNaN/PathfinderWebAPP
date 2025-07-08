@@ -54,7 +54,7 @@ const MeasurementControls: React.FC = () => {
   return (
     <div className="measurement-controls">
       <div className="measurement-header">
-        <h4>📏 Strumenti di Misurazione</h4>
+        <h4>📏 Measurement Tools</h4>
         {measurementCount > 0 && (
           <span className="measurement-badge">{measurementCount}</span>
         )}
@@ -65,7 +65,7 @@ const MeasurementControls: React.FC = () => {
           onClick={toggleMeasurement}
           className={`btn measure-btn ${isActive ? 'active' : ''}`}
         >
-          {isActive ? '⏸️ Ferma' : '📏 Misura'}
+          {isActive ? '⏸️ Stop' : '📏 Measure'}
         </button>
         
         {measurementCount > 0 && (
@@ -73,7 +73,7 @@ const MeasurementControls: React.FC = () => {
             onClick={clearAllMeasurements}
             className="btn btn-clear-measurements"
           >
-            🗑️ Cancella
+            🗑️ Clear
           </button>
         )}
       </div>
@@ -82,11 +82,11 @@ const MeasurementControls: React.FC = () => {
         <div className="measurement-instructions">
           <p>
             {currentDistance === null 
-              ? "📍 Clicca per posizionare il primo punto" 
-              : "📍 Clicca per posizionare il secondo punto"
+              ? "📍 Click to place the first point" 
+              : "📍 Click to place the second point"
             }
           </p>
-          <small>Premi il tasto M o clicca Ferma per uscire</small>
+          <small>Press M key or click Stop to exit</small>
         </div>
       )}
 
@@ -94,23 +94,23 @@ const MeasurementControls: React.FC = () => {
         <div className="live-distance">
           <div className="distance-display">
             <span className="distance-value">{Math.round(currentDistance)}</span>
-            <span className="distance-unit">metri</span>
+            <span className="distance-unit">feet</span>
           </div>
           <div className="distance-breakdown">
             <small>
-              {Math.round(currentDistance / 5)} quadrati • {(currentDistance / 5).toFixed(1)} unità
+              {Math.round(currentDistance / 5)} squares • {(currentDistance / 5).toFixed(1)} units
             </small>
           </div>
         </div>
       )}
 
       <div className="measurement-tips">
-        <h5>💡 Suggerimenti:</h5>
+        <h5>💡 Tips:</h5>
         <ul>
-          <li>Premi <kbd>M</kbd> per attivare/disattivare la modalità misurazione</li>
-          <li>Clicca due punti per misurare la distanza</li>
-          <li>Le misurazioni sono in metri D&D (quadrati da 1.5m)</li>
-          <li>Usa per movimento, gittata incantesimi, posizionamento</li>
+          <li>Press <kbd>M</kbd> to toggle measurement mode</li>
+          <li>Click two points to measure distance</li>
+          <li>Measurements are in D&D feet (5-foot squares)</li>
+          <li>Use for movement, spell range, positioning</li>
         </ul>
       </div>
     </div>

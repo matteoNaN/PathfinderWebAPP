@@ -47,6 +47,7 @@ class DrawingService {
     console.log('DrawingService.initialize called with scene:', scene);
     this._scene = scene;
     this.setupDrawingEvents();
+    // this.setupModeCoordination(); // Disabled mode coordination
     console.log('DrawingService initialization complete');
   }
 
@@ -310,7 +311,14 @@ class DrawingService {
       
       // Only handle events when drawing mode is active
       if (!this._isDrawingModeActive) {
+        // Don't consume events when drawing mode is not active
+        // This allows other services (like MeasurementService) to handle them
         return;
+      }
+      
+      // Log to see if drawing service is consuming all pointer events
+      if (pointerInfo.type === PointerEventTypes.POINTERMOVE && Math.random() < 0.001) {
+        console.log('DrawingService: Processing POINTERMOVE event');
       }
       
       if (this._settings.currentTool === 'eraser') {
@@ -751,6 +759,11 @@ class DrawingService {
       }
     }
   }
+
+  // private setupModeCoordination(): void {
+  //   // Mode coordination removed - let both systems work independently
+  //   // Focus on event priority handling instead
+  // }
 
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);

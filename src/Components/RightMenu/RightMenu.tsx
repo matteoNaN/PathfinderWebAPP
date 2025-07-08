@@ -55,7 +55,7 @@ function FloatingRightMenu({ onStartTutorial }: FloatingRightMenuProps) {
         <button 
           className="menu-toggle"
           onClick={toggleMenu}
-          title={isExpanded ? 'Chiudi Strumenti' : 'Apri Strumenti'}
+          title={isExpanded ? 'Close Tools' : 'Open Tools'}
         >
           {isExpanded ? '✕' : '🛠️'}
         </button>
@@ -63,38 +63,38 @@ function FloatingRightMenu({ onStartTutorial }: FloatingRightMenuProps) {
         {isExpanded && (
           <div className="menu-content">
             <div className="menu-header">
-              <h3>🎲 Strumenti GDR</h3>
+              <h3>🎲 RPG Tools</h3>
             </div>
             
             <MeasurementControls />
             
             <div className="menu-section">
-              <h4>🎮 Azioni Rapide</h4>
+              <h4>🎮 Quick Actions</h4>
               <div className="quick-actions">
                 <button 
                   className="action-btn" 
-                  title="Tira d20"
+                  title="Roll d20"
                   onClick={() => rollDice(20)}
                 >
                   🎲 d20
                 </button>
                 <button 
                   className="action-btn" 
-                  title="Tira d6"
+                  title="Roll d6"
                   onClick={() => rollDice(6)}
                 >
                   🎲 d6
                 </button>
                 <button 
                   className="action-btn" 
-                  title="Tira d8"
+                  title="Roll d8"
                   onClick={() => rollDice(8)}
                 >
                   🎲 d8
                 </button>
                 <button 
                   className="action-btn" 
-                  title="Tira d10"
+                  title="Roll d10"
                   onClick={() => rollDice(10)}
                 >
                   🎲 d10
@@ -103,11 +103,11 @@ function FloatingRightMenu({ onStartTutorial }: FloatingRightMenuProps) {
             </div>
 
             <div className="menu-section">
-              <h4>🎨 Strumenti Disegno</h4>
+              <h4>🎨 Drawing Tools</h4>
               <div className="utility-buttons">
                 <button 
                   className={`utility-btn ${showDrawingTools ? 'active' : ''}`}
-                  title="Strumenti di disegno per annotazioni DM"
+                  title="Drawing tools for DM annotations"
                   onClick={() => {
                     const newState = !showDrawingTools;
                     console.log('Drawing button clicked. New state:', newState);
@@ -115,60 +115,60 @@ function FloatingRightMenu({ onStartTutorial }: FloatingRightMenuProps) {
                     // Don't activate here, let the FloatingDrawingToolbar handle it
                   }}
                 >
-                  🖊️ Disegno
+                  🖊️ Drawing
                 </button>
                 <button 
                   className="utility-btn" 
-                  title="Cancella tutte le annotazioni"
+                  title="Clear all annotations"
                   onClick={() => {
-                    if (confirm('Sei sicuro di voler cancellare tutte le annotazioni?')) {
+                    if (confirm('Are you sure you want to clear all annotations?')) {
                       DrawingService.clearAllAnnotations();
-                      alert('🗑️ Tutte le annotazioni sono state cancellate!');
+                      alert('🗑️ All annotations have been cleared!');
                     }
                   }}
                 >
-                  🗑️ Cancella
+                  🗑️ Clear
                 </button>
               </div>
             </div>
 
             <div className="menu-section">
-              <h4>🎯 Utilità</h4>
+              <h4>🎯 Utilities</h4>
               <div className="utility-buttons">
                 <button 
                   className="utility-btn" 
-                  title="Controlli Telecamera"
+                  title="Camera Controls"
                   onClick={() => {
                     MainRenderService.resetCameraPosition();
-                    alert('📷 Telecamera resettata alla posizione predefinita!');
+                    alert('📷 Camera reset to default position!');
                   }}
                 >
-                  📷 Telecamera
+                  📷 Camera
                 </button>
                 <button 
                   className="utility-btn" 
-                  title="Impostazioni Griglia"
+                  title="Grid Settings"
                   onClick={() => {
-                    alert('📐 Griglia: Ogni quadrato = 1.5 metri (5 piedi D&D)');
+                    alert('📐 Grid: Each square = 1.5 meters (5 feet D&D)');
                   }}
                 >
-                  📐 Griglia
+                  📐 Grid
                 </button>
                 <button 
                   className="utility-btn" 
-                  title="Illuminazione"
+                  title="Lighting"
                   onClick={() => {
-                    alert('💡 Sistema di illuminazione attivo:\n- Luce ambientale\n- Luce direzionale con ombre\n- Luce di riempimento');
+                    alert('💡 Active lighting system:\n- Ambient light\n- Directional light with shadows\n- Fill light');
                   }}
                 >
-                  💡 Luci
+                  💡 Lights
                 </button>
                 <button 
                   className={`utility-btn ${showAdvancedSettings ? 'active' : ''}`}
-                  title="Impostazioni Avanzate"
+                  title="Advanced Settings"
                   onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
                 >
-                  ⚙️ Impostazioni
+                  ⚙️ Settings
                 </button>
               </div>
             </div>
@@ -178,7 +178,7 @@ function FloatingRightMenu({ onStartTutorial }: FloatingRightMenuProps) {
               <div className="utility-buttons">
                 <button 
                   className="utility-btn tutorial-btn" 
-                  title="Avvia Tutorial"
+                  title="Start Tutorial"
                   onClick={() => {
                     onStartTutorial();
                     setIsExpanded(false);
@@ -190,7 +190,7 @@ function FloatingRightMenu({ onStartTutorial }: FloatingRightMenuProps) {
             </div>
 
             <div className="menu-footer">
-              <small>Premi M per misurare • Trascina le entità per muoverle</small>
+              <small>Press M to measure • Drag entities to move them</small>
             </div>
           </div>
         )}
@@ -266,14 +266,14 @@ const FloatingDrawingToolbar: React.FC<{
   };
 
   const clearAll = () => {
-    if (confirm('Cancellare tutte le annotazioni?')) {
+    if (confirm('Clear all annotations?')) {
       DrawingService.clearAllAnnotations();
-      alert('🗑️ Annotazioni cancellate!');
+      alert('🗑️ Annotations cleared!');
     }
   };
 
   const tools = [
-    { tool: 'pen', icon: '🖊️', name: 'Penna' },
+    { tool: 'pen', icon: '🖊️', name: 'Pen' },
     { tool: 'marker', icon: '📍', name: 'Pin' },
   ];
 
@@ -290,14 +290,14 @@ const FloatingDrawingToolbar: React.FC<{
           <button 
             className="expand-btn"
             onClick={() => setIsExpanded(!isExpanded)}
-            title={isExpanded ? 'Chiudi opzioni' : 'Apri opzioni'}
+            title={isExpanded ? 'Close options' : 'Open options'}
           >
             {isExpanded ? '◀' : '▶'}
           </button>
           <button 
             className="close-btn"
             onClick={onClose}
-            title="Chiudi strumenti disegno"
+            title="Close drawing tools"
           >
             ✕
           </button>
@@ -325,7 +325,7 @@ const FloatingDrawingToolbar: React.FC<{
                 type="color"
                 value={drawingSettings.currentColor}
                 onChange={(e) => handleColorChange(e.target.value)}
-                title="Colore"
+                title="Color"
               />
             </div>
             <div className="setting-item">
@@ -341,18 +341,18 @@ const FloatingDrawingToolbar: React.FC<{
             <button 
               className="clear-btn"
               onClick={clearAll}
-              title="Cancella tutto"
+              title="Clear all"
             >
               🗑️
             </button>
           </div>
 
           <div className="drawing-hint">
-            🖊️ Clicca e trascina sulla mappa per disegnare
+            🖊️ Click and drag on the map to draw
             <br />
-            📍 Usa PIN per inserire marcatori
+            📍 Use PIN to place markers
             <br />
-            <small style={{ color: '#f39c12' }}>⚠️ Camera bloccata durante il disegno</small>
+            <small style={{ color: '#f39c12' }}>⚠️ Camera locked during drawing</small>
           </div>
           
           {/* Debug button for development */}
@@ -426,7 +426,7 @@ const AdvancedSettingsPanel: React.FC<{
   };
 
   const resetAllSettings = () => {
-    if (confirm('Ripristinare tutte le impostazioni ai valori predefiniti?')) {
+    if (confirm('Reset all settings to default values?')) {
       localStorage.removeItem('dnd-show-fps');
       localStorage.removeItem('dnd-enable-shadows');
       localStorage.removeItem('dnd-high-quality');
@@ -445,7 +445,7 @@ const AdvancedSettingsPanel: React.FC<{
         autoSave: true
       });
       
-      alert('⚙️ Impostazioni ripristinate! Ricarica la pagina per applicare tutte le modifiche.');
+      alert('⚙️ Settings reset! Reload the page to apply all changes.');
     }
   };
 
@@ -457,7 +457,7 @@ const AdvancedSettingsPanel: React.FC<{
     }}>
       <div className="advanced-settings-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>⚙️ Impostazioni Avanzate</h3>
+          <h3>⚙️ Advanced Settings</h3>
           <button onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -467,7 +467,7 @@ const AdvancedSettingsPanel: React.FC<{
         
         <div className="modal-content">
           <div className="settings-section">
-            <h4>🎮 Prestazioni & Grafica</h4>
+            <h4>🎮 Performance & Graphics</h4>
             <div className="setting-item">
               <label>
                 <input
@@ -475,9 +475,9 @@ const AdvancedSettingsPanel: React.FC<{
                   checked={settings.showFPS}
                   onChange={(e) => updateSetting('showFPS', e.target.checked)}
                 />
-                Mostra FPS
+                Show FPS
               </label>
-              <p>Visualizza i frame per secondo nell'angolo dello schermo</p>
+              <p>Display frames per second in the screen corner</p>
             </div>
             <div className="setting-item">
               <label>
@@ -486,9 +486,9 @@ const AdvancedSettingsPanel: React.FC<{
                   checked={settings.enableShadows}
                   onChange={(e) => updateSetting('enableShadows', e.target.checked)}
                 />
-                Abilita Ombre
+                Enable Shadows
               </label>
-              <p>Ombre realistiche per entità e oggetti (impatto prestazioni)</p>
+              <p>Realistic shadows for entities and objects (performance impact)</p>
             </div>
             <div className="setting-item">
               <label>
@@ -497,14 +497,14 @@ const AdvancedSettingsPanel: React.FC<{
                   checked={settings.highQuality}
                   onChange={(e) => updateSetting('highQuality', e.target.checked)}
                 />
-                Alta Qualità
+                High Quality
               </label>
-              <p>Migliore qualità visiva (maggiore uso GPU)</p>
+              <p>Better visual quality (higher GPU usage)</p>
             </div>
           </div>
 
           <div className="settings-section">
-            <h4>🔊 Audio & Interfaccia</h4>
+            <h4>🔊 Audio & Interface</h4>
             <div className="setting-item">
               <label>
                 <input
@@ -512,9 +512,9 @@ const AdvancedSettingsPanel: React.FC<{
                   checked={settings.enableAudio}
                   onChange={(e) => updateSetting('enableAudio', e.target.checked)}
                 />
-                Effetti Audio
+                Audio Effects
               </label>
-              <p>Suoni per azioni e notifiche</p>
+              <p>Sounds for actions and notifications</p>
             </div>
             <div className="setting-item">
               <label>
@@ -523,14 +523,14 @@ const AdvancedSettingsPanel: React.FC<{
                   checked={settings.showGridNumbers}
                   onChange={(e) => updateSetting('showGridNumbers', e.target.checked)}
                 />
-                Numeri Griglia
+                Grid Numbers
               </label>
-              <p>Mostra coordinate numeriche sulla griglia</p>
+              <p>Show numerical coordinates on the grid</p>
             </div>
           </div>
 
           <div className="settings-section">
-            <h4>💾 Salvataggio</h4>
+            <h4>💾 Saving</h4>
             <div className="setting-item">
               <label>
                 <input
@@ -538,24 +538,24 @@ const AdvancedSettingsPanel: React.FC<{
                   checked={settings.autoSave}
                   onChange={(e) => updateSetting('autoSave', e.target.checked)}
                 />
-                Salvataggio Automatico
+                Auto Save
               </label>
-              <p>Salva automaticamente lo stato ogni 5 minuti</p>
+              <p>Automatically save state every 5 minutes</p>
             </div>
           </div>
 
           <div className="settings-section">
-            <h4>📚 Tutorial & Aiuto</h4>
+            <h4>📚 Tutorial & Help</h4>
             <div className="setting-buttons">
               <button className="btn btn-primary" onClick={onStartTutorial}>
-                🚀 Avvia Tutorial
+                🚀 Start Tutorial
               </button>
               <button 
                 className="btn btn-secondary"
                 onClick={() => {
                   localStorage.removeItem('dnd-combat-tutorial-disabled');
                   localStorage.removeItem('dnd-combat-tutorial-seen');
-                  alert('✅ Tutorial reset! Apparirà al prossimo caricamento.');
+                  alert('✅ Tutorial reset! Will appear on next load.');
                 }}
               >
                 🔄 Reset Tutorial
@@ -564,24 +564,24 @@ const AdvancedSettingsPanel: React.FC<{
           </div>
 
           <div className="settings-section">
-            <h4>⚠️ Zona Pericolosa</h4>
+            <h4>⚠️ Danger Zone</h4>
             <div className="danger-buttons">
               <button 
                 className="btn btn-warning"
                 onClick={resetAllSettings}
               >
-                🔄 Ripristina Impostazioni
+                🔄 Reset Settings
               </button>
               <button 
                 className="btn btn-danger"
                 onClick={() => {
-                  if (confirm('Eliminare TUTTI i dati salvati? Questa azione è irreversibile!')) {
+                  if (confirm('Delete ALL saved data? This action is irreversible!')) {
                     localStorage.clear();
-                    alert('🗑️ Tutti i dati eliminati! Ricarica la pagina.');
+                    alert('🗑️ All data deleted! Reload the page.');
                   }
                 }}
               >
-                🗑️ Elimina Tutti i Dati
+                🗑️ Delete All Data
               </button>
             </div>
           </div>

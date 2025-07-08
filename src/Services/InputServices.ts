@@ -56,18 +56,20 @@ export class InputService {
         this._sceneRef.pointerY
       );
 
-      if (pickResult && pickResult.hit) {
+      if (pickResult && pickResult.hit && pickResult.pickedPoint) {
         if (!this._firstPoint) {
           this._firstPoint = pickResult.pickedPoint;
+          console.log("First point selected for sphere:", this._firstPoint);
         } else {
           this._sphereRadius = Vector3.Distance(
             this._firstPoint,
-            pickResult.pickedPoint!
+            pickResult.pickedPoint
           );
+          console.log("Creating sphere with radius:", this._sphereRadius);
           const circle: AbstractMesh = MeshBuilder.CreateSphere(
             "disc-mesh",
             {
-              diameter: this._sphereRadius,
+              diameter: this._sphereRadius * 2,
               segments: 32,
             },
             this._sceneRef
@@ -75,8 +77,15 @@ export class InputService {
 
           circle.position = this._firstPoint;
           this._addUISlider(circle);
-           this._drawSphereEnabled = false;
+          
+          // Reset for next sphere
+          this._firstPoint = null;
+          this._sphereRadius = null;
+          this._drawSphereEnabled = false;
+          console.log("Sphere created successfully");
         }
+      } else {
+        console.log("No valid pick result for sphere creation");
       }
     }
   }
@@ -133,11 +142,13 @@ private _addUISlider(targetMesh: AbstractMesh): void {
       if (event.key === "m") {
         MeasurementService.toggleMeasurement();
       }
-      // Disabled sphere drawing to prevent unwanted sphere spawning
-      // if (event.key === "s") {
-      //   this._drawSphereEnabled = !this._drawSphereEnabled;
-      //   console.log("disegnando la sfera");
-      // }
+      if (event.key === "s") {
+        this._drawSphereEnabled = !this._drawSphereEnabled;
+        console.log("Sphere drawing mode:", this._drawSphereEnabled);
+        // Reset sphere state when toggling
+        this._firstPoint = null;
+        this._sphereRadius = null;
+      }
     });
   }
 

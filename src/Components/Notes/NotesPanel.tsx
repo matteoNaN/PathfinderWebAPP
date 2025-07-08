@@ -78,7 +78,7 @@ const NotesPanel: React.FC = () => {
   };
 
   const handleDeleteNote = (noteId: string) => {
-    if (confirm('Sei sicuro di voler eliminare questa nota?')) {
+    if (confirm('Are you sure you want to delete this note?')) {
       setNotes(prev => prev.filter(note => note.id !== noteId));
     }
   };

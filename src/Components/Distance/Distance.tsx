@@ -58,13 +58,13 @@ function Distance() {
         <div className="distance-icon">📏</div>
         <div className="distance-info">
           <div className="distance-value">
-            {Math.round(displayDistance)} <span className="unit">piedi</span>
+            {Math.round(displayDistance)} <span className="unit">feet</span>
           </div>
           <div className="distance-details">
-            {Math.round(displayDistance / 5)} quadrati • ~{Math.ceil(displayDistance / 5)} movimenti
+            {Math.round(displayDistance / 5)} squares • ~{Math.ceil(displayDistance / 5)} moves
           </div>
           {liveDistance && (
-            <div className="distance-status">Misurando...</div>
+            <div className="distance-status">Measuring...</div>
           )}
         </div>
       </div>

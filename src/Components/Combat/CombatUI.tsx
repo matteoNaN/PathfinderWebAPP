@@ -161,21 +161,21 @@ const CombatUI: React.FC = () => {
         {/* Combat Status Panel */}
         <div className="combat-status">
         <div className="combat-header">
-          <h2>⚔️ Gestore Combattimento</h2>
+          <h2>⚔️ Combat Manager</h2>
           <div className="combat-controls">
             {!combatState.isActive ? (
               <button 
                 onClick={handleStartCombat}
                 className="btn btn-primary"
                 disabled={combatState.entities.size === 0}
-                title={combatState.entities.size === 0 ? "Aggiungi prima le entità" : "Tira l'iniziativa e inizia il combattimento"}
+                title={combatState.entities.size === 0 ? "Add entities first" : "Roll initiative and start combat"}
               >
-                Inizia Combattimento
+                Start Combat
               </button>
             ) : (
               <>
                 <button onClick={handleEndCombat} className="btn btn-danger">
-                  Termina Combattimento
+                  End Combat
                 </button>
                 <div className="round-info">Round {combatState.round}</div>
               </>
@@ -183,9 +183,9 @@ const CombatUI: React.FC = () => {
             <button 
               onClick={() => setShowSaveLoadMenu(!showSaveLoadMenu)}
               className="btn btn-secondary"
-              title="Salva/Carica partita"
+              title="Save/Load game"
             >
-              💾 Partita
+              💾 Game
             </button>
           </div>
         </div>
@@ -194,9 +194,9 @@ const CombatUI: React.FC = () => {
       {/* Initiative Tracker */}
       {combatState.isActive && (
         <div className="initiative-tracker">
-          <h3>⚔️ Ordine di Iniziativa</h3>
+          <h3>⚔️ Initiative Order</h3>
           <div className="initiative-help">
-            <small>Clicca i numeri per modificare • Usa ↑↓ per riordinare</small>
+            <small>Click numbers to edit • Use ↑↓ to reorder</small>
           </div>
           <div className="initiative-list">
             {combatState.turnOrder.map((turn, index) => {
@@ -211,7 +211,7 @@ const CombatUI: React.FC = () => {
                   <div 
                     className="initiative-number clickable" 
                     onClick={() => adjustInitiative(turn.entityId, turn.initiative)}
-                    title="Clicca per modificare l'iniziativa"
+                    title="Click to edit initiative"
                   >
                     {turn.initiative}
                   </div>
@@ -227,7 +227,7 @@ const CombatUI: React.FC = () => {
                       onClick={() => moveInitiativeUp(index)}
                       className="btn btn-tiny"
                       disabled={index === 0}
-                      title="Sposta su"
+                      title="Move up"
                     >
                       ↑
                     </button>
@@ -235,7 +235,7 @@ const CombatUI: React.FC = () => {
                       onClick={() => moveInitiativeDown(index)}
                       className="btn btn-tiny"
                       disabled={index === combatState.turnOrder.length - 1}
-                      title="Sposta giù"
+                      title="Move down"
                     >
                       ↓
                     </button>
@@ -250,12 +250,12 @@ const CombatUI: React.FC = () => {
       {/* Entity Management */}
       <div className="entity-management">
         <div className="section-header">
-          <h3>Entità</h3>
+          <h3>Entities</h3>
           <button 
             onClick={() => setShowAddEntity(!showAddEntity)}
             className="btn btn-small btn-primary"
           >
-            ➕ Aggiungi Entità
+            ➕ Add Entity
           </button>
         </div>
 
@@ -277,27 +277,27 @@ const CombatUI: React.FC = () => {
       {/* Selected Entity Details */}
       {selectedEntity && (
         <div className="selected-entity">
-          <h3>Selezionato: {selectedEntity.name}</h3>
+          <h3>Selected: {selectedEntity.name}</h3>
           <div className="entity-details">
             <div className="stat-row">
-              <span>PF:</span>
+              <span>HP:</span>
               <span>{selectedEntity.stats.currentHP} / {selectedEntity.stats.maxHP}</span>
             </div>
             <div className="stat-row">
-              <span>CA:</span>
+              <span>AC:</span>
               <span>{selectedEntity.stats.armorClass}</span>
             </div>
             <div className="stat-row">
-              <span>Velocità:</span>
-              <span>{selectedEntity.stats.speed} mt</span>
+              <span>Speed:</span>
+              <span>{selectedEntity.stats.speed} ft</span>
             </div>
             <div className="stat-row">
-              <span>Taglia:</span>
+              <span>Size:</span>
               <span>{selectedEntity.size}</span>
             </div>
             {selectedEntity.conditions.length > 0 && (
               <div className="conditions">
-                <span>Condizioni:</span>
+                <span>Conditions:</span>
                 <div className="condition-list">
                   {selectedEntity.conditions.map(condition => (
                     <span key={condition} className="condition-tag">{condition}</span>
@@ -311,41 +311,41 @@ const CombatUI: React.FC = () => {
 
       {/* Spell Area Controls */}
       <div className="spell-controls">
-        <h3>🔮 Aree Incantesimo</h3>
+        <h3>🔮 Spell Areas</h3>
         <div className="spell-buttons">
           <button 
             onClick={() => createSpellArea('circle')}
             className="btn btn-small btn-magic"
-            title="Crea area circolare (trascina per muovere, click destro per controlli)"
+            title="Create circular area (drag to move, right-click for controls)"
           >
-            ⭕ Cerchio
+            ⭕ Circle
           </button>
           <button 
             onClick={() => createSpellArea('cone')}
             className="btn btn-small btn-magic"
-            title="Crea area conica (click sinistro per ruotare, click destro per controlli)"
+            title="Create cone area (left-click to rotate, right-click for controls)"
           >
-            🔺 Cono
+            🔺 Cone
           </button>
           <button 
             onClick={() => createSpellArea('square')}
             className="btn btn-small btn-magic"
-            title="Crea area quadrata (trascina per muovere, click destro per controlli)"
+            title="Create square area (drag to move, right-click for controls)"
           >
-            ⬜ Quadrato
+            ⬜ Square
           </button>
           <button 
             onClick={() => createSpellArea('line')}
             className="btn btn-small btn-magic"
-            title="Crea area lineare (click sinistro per ruotare, click destro per controlli)"
+            title="Create line area (left-click to rotate, right-click for controls)"
           >
-            📏 Linea
+            📏 Line
           </button>
           <button 
             onClick={handleClearSpellAreas}
             className="btn btn-small btn-warning"
           >
-            🗑️ Cancella Tutto
+            🗑️ Clear All
           </button>
         </div>
       </div>
@@ -354,23 +354,23 @@ const CombatUI: React.FC = () => {
       {!hasEntities && showQuickStart && (
         <div className="quick-start-tips">
           <div className="quick-start-header">
-            <h3>🚀 Avvio Rapido</h3>
+            <h3>🚀 Quick Start</h3>
             <button 
               onClick={() => setShowQuickStart(false)} 
               className="btn btn-tiny btn-secondary"
-              title="Nascondi pannello avvio rapido"
+              title="Hide quick start panel"
             >
               ✕
             </button>
           </div>
           <ol>
-            <li>Clicca "➕ Aggiungi Entità" per creare personaggi</li>
-            <li>Inserisci nome, tipo e iniziativa</li>
-            <li>Clicca "Inizia Combattimento" per tirare l'iniziativa</li>
-            <li>Usa le frecce ↑↓ per riordinare l'iniziativa</li>
-            <li>Clicca "Termina Turno" per avanzare i turni</li>
+            <li>Click "➕ Add Entity" to create characters</li>
+            <li>Enter name, type and initiative</li>
+            <li>Click "Start Combat" to roll initiative</li>
+            <li>Use ↑↓ arrows to reorder initiative</li>
+            <li>Click "End Turn" to advance turns</li>
           </ol>
-          <p><strong>💡 Suggerimenti:</strong> Premi 'M' per misurare le distanze • Trascina le entità per spostarle</p>
+          <p><strong>💡 Tips:</strong> Press 'M' to measure distances • Drag entities to move them</p>
         </div>
       )}
       
@@ -381,7 +381,7 @@ const CombatUI: React.FC = () => {
             onClick={() => setShowQuickStart(true)} 
             className="btn btn-small btn-secondary"
           >
-            📖 Mostra Guida Rapida
+            📖 Show Quick Guide
           </button>
         </div>
       )}
@@ -389,14 +389,14 @@ const CombatUI: React.FC = () => {
       {/* Simple Combat Info */}
       {combatState.isActive && currentEntity && (
         <div className="simple-combat-info">
-          <h4>Turno Corrente</h4>
+          <h4>Current Turn</h4>
           <div className="current-entity-display">
             <span className="entity-name">{currentEntity.name}</span>
             <span className="entity-type">({currentEntity.type})</span>
           </div>
           <div className="turn-actions">
             <button onClick={handleNextTurn} className="btn btn-primary">
-              Termina Turno
+              End Turn
             </button>
           </div>
         </div>
@@ -519,7 +519,7 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
   };
 
   const handleEditHP = () => {
-    const newHP = prompt(`Modifica PF (max: ${entity.stats.maxHP}):`, entity.stats.currentHP.toString());
+    const newHP = prompt(`Edit HP (max: ${entity.stats.maxHP}):`, entity.stats.currentHP.toString());
     if (newHP && !isNaN(Number(newHP))) {
       const hp = Math.max(0, Math.min(entity.stats.maxHP, Number(newHP)));
       entity.stats.currentHP = hp;
@@ -529,7 +529,7 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
   };
 
   const handleEditAC = () => {
-    const newAC = prompt(`Modifica CA:`, entity.stats.armorClass.toString());
+    const newAC = prompt(`Edit AC:`, entity.stats.armorClass.toString());
     if (newAC && !isNaN(Number(newAC))) {
       entity.stats.armorClass = Math.max(1, Number(newAC));
       forceUpdate(prev => prev + 1);
@@ -538,7 +538,7 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
   };
 
   const handleEditSpeed = () => {
-    const newSpeed = prompt(`Modifica Velocità (piedi):`, entity.stats.speed.toString());
+    const newSpeed = prompt(`Edit Speed (feet):`, entity.stats.speed.toString());
     if (newSpeed && !isNaN(Number(newSpeed))) {
       entity.stats.speed = Math.max(0, Number(newSpeed));
       forceUpdate(prev => prev + 1);
@@ -547,7 +547,7 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
   };
 
   const handleEditName = () => {
-    const newName = prompt(`Modifica Nome:`, entity.name);
+    const newName = prompt(`Edit Name:`, entity.name);
     if (newName && newName.trim()) {
       entity.name = newName.trim();
       forceUpdate(prev => prev + 1);
@@ -558,7 +558,7 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
   return (
     <div className={`entity-card ${entity.type} ${isSelected ? 'selected' : ''} ${entity.isFlying ? 'flying' : ''}`}>
       <div className="entity-card-header">
-        <div className="entity-name" onClick={handleEditName} title="Clicca per modificare nome">
+        <div className="entity-name" onClick={handleEditName} title="Click to edit name">
           {entity.name}
           {entity.isFlying && <span className="flying-indicator">✈️ {entity.flyingHeight}ft</span>}
         </div>
@@ -566,14 +566,14 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
           <button 
             onClick={() => setShowEditTools(!showEditTools)} 
             className="btn btn-tiny btn-secondary"
-            title="Strumenti di modifica"
+            title="Edit tools"
           >
             ⚙️
           </button>
           <button 
             onClick={() => setShowDebuffForm(!showDebuffForm)} 
             className="btn btn-tiny btn-warning"
-            title="Aggiungi Debuff"
+            title="Add Debuff"
           >
             🎯
           </button>
@@ -583,14 +583,14 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
       
       <div className="entity-stats">
         <div className="stat-line">
-          <span onClick={handleEditHP} title="Clicca per modificare" className="editable-stat">
-            PF: {entity.stats.currentHP}/{entity.stats.maxHP}
+          <span onClick={handleEditHP} title="Click to edit" className="editable-stat">
+            HP: {entity.stats.currentHP}/{entity.stats.maxHP}
           </span> | 
-          <span onClick={handleEditAC} title="Clicca per modificare" className="editable-stat">
-            CA: {entity.stats.armorClass}
+          <span onClick={handleEditAC} title="Click to edit" className="editable-stat">
+            AC: {entity.stats.armorClass}
           </span> | 
-          <span onClick={handleEditSpeed} title="Clicca per modificare" className="editable-stat">
-            Velocità: {entity.stats.speed}mt
+          <span onClick={handleEditSpeed} title="Click to edit" className="editable-stat">
+            Speed: {entity.stats.speed}ft
           </span>
         </div>
       </div>
@@ -599,25 +599,25 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
       {showEditTools && (
         <div className="edit-tools-panel">
           <div className="edit-tools-header">
-            <h4>🛠️ Strumenti di Modifica</h4>
+            <h4>🛠️ Edit Tools</h4>
           </div>
           <div className="edit-tools-grid">
-            <button onClick={handleEditHP} className="btn btn-small">📊 Modifica PF</button>
-            <button onClick={handleEditAC} className="btn btn-small">🛡️ Modifica CA</button>
-            <button onClick={handleEditSpeed} className="btn btn-small">🏃 Modifica Velocità</button>
-            <button onClick={handleEditName} className="btn btn-small">📝 Modifica Nome</button>
+            <button onClick={handleEditHP} className="btn btn-small">📊 Edit HP</button>
+            <button onClick={handleEditAC} className="btn btn-small">🛡️ Edit AC</button>
+            <button onClick={handleEditSpeed} className="btn btn-small">🏃 Edit Speed</button>
+            <button onClick={handleEditName} className="btn btn-small">📝 Edit Name</button>
             
             {/* Flying Controls */}
             {entity.isFlying ? (
               <button onClick={handleLand} className="btn btn-small btn-warning">
-                ⬇️ Atterra
+                ⬇️ Land
               </button>
             ) : (
               <button 
                 onClick={() => setShowFlyingControls(!showFlyingControls)} 
                 className="btn btn-small btn-magic"
               >
-                ✈️ Vola
+                ✈️ Fly
               </button>
             )}
           </div>
@@ -625,9 +625,9 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
           {/* Flying Height Controls */}
           {showFlyingControls && !entity.isFlying && (
             <div className="flying-controls">
-              <h5>Controlli Volo</h5>
+              <h5>Flight Controls</h5>
               <div className="height-control">
-                <label>Altezza (piedi):</label>
+                <label>Height (feet):</label>
                 <input
                   type="number"
                   min="5"
@@ -637,7 +637,7 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
                   onChange={(e) => setFlyingHeight(Number(e.target.value))}
                 />
                 <button onClick={handleSetFlying} className="btn btn-small btn-primary">
-                  Decolla
+                  Take Off
                 </button>
               </div>
             </div>
@@ -667,15 +667,15 @@ const EntityCard: React.FC<{ entity: CombatEntity; isSelected: boolean }> = ({ e
         <div className="debuff-form">
           <input
             type="text"
-            placeholder="Inserisci nome debuff"
+            placeholder="Enter debuff name"
             value={newDebuff}
             onChange={(e) => setNewDebuff(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleAddDebuff()}
             autoFocus
           />
           <div className="debuff-actions">
-            <button onClick={handleAddDebuff} className="btn btn-tiny btn-primary">Aggiungi</button>
-            <button onClick={() => setShowDebuffForm(false)} className="btn btn-tiny btn-secondary">Annulla</button>
+            <button onClick={handleAddDebuff} className="btn btn-tiny btn-primary">Add</button>
+            <button onClick={() => setShowDebuffForm(false)} className="btn btn-tiny btn-secondary">Cancel</button>
           </div>
         </div>
       )}
@@ -696,7 +696,7 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf') || file.name.endsWith('.stl'))) {
       setModelFile(file);
     } else {
-      alert('Seleziona un file GLB, GLTF o STL valido');
+      alert('Select a valid GLB, GLTF or STL file');
     }
   };
 
@@ -747,7 +747,7 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         <div className="form-row">
           <input
             type="text"
-            placeholder="Nome Entità"
+            placeholder="Entity Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -757,18 +757,18 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             value={type}
             onChange={(e) => setType(e.target.value as EntityType)}
           >
-            <option value={EntityType.PLAYER}>Giocatore</option>
-            <option value={EntityType.ENEMY}>Nemico</option>
-            <option value={EntityType.NPC}>PNG</option>
+            <option value={EntityType.PLAYER}>Player</option>
+            <option value={EntityType.ENEMY}>Enemy</option>
+            <option value={EntityType.NPC}>NPC</option>
           </select>
           <input
             type="number"
-            placeholder="Iniziativa"
+            placeholder="Initiative"
             value={initiative}
             onChange={(e) => setInitiative(Number(e.target.value))}
             min="1"
             max="30"
-            title="Modificatore di iniziativa (1-30)"
+            title="Initiative modifier (1-30)"
           />
         </div>
         
@@ -778,7 +778,7 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             onClick={() => setShowModelUpload(!showModelUpload)}
             className="btn btn-small btn-secondary"
           >
-            {showModelUpload ? '📁 Nascondi Modello' : '🎨 Carica Modello 3D'}
+            {showModelUpload ? '📁 Hide Model' : '🎨 Upload 3D Model'}
           </button>
         </div>
 
@@ -800,8 +800,8 @@ const AddEntityForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         )}
 
         <div className="form-actions">
-          <button type="submit" className="btn btn-primary">Aggiungi Entità</button>
-          <button type="button" onClick={onClose} className="btn btn-secondary">Annulla</button>
+          <button type="submit" className="btn btn-primary">Add Entity</button>
+          <button type="button" onClick={onClose} className="btn btn-secondary">Cancel</button>
         </div>
       </form>
     </div>
@@ -858,7 +858,7 @@ const SpellAreaControlsModal: React.FC<{
       <div className="modal-backdrop" onClick={onClose} />
       <div className="modal-content">
         <div className="modal-header">
-          <h3>🔮 Controlli Area Incantesimo</h3>
+          <h3>🔮 Spell Area Controls</h3>
           <button onClick={onClose} className="btn btn-tiny">✕</button>
         </div>
         
@@ -870,7 +870,7 @@ const SpellAreaControlsModal: React.FC<{
           
           {/* Size Controls */}
           <div className="size-controls">
-            <h4>Dimensioni</h4>
+            <h4>Size</h4>
             <div className="quick-size-buttons">
               <button onClick={() => handleQuickSize(0.5)} className="btn btn-small">½</button>
               <button onClick={() => handleQuickSize(0.75)} className="btn btn-small">¾</button>
@@ -881,7 +881,7 @@ const SpellAreaControlsModal: React.FC<{
             
             {area.type === 'circle' && (
               <div className="control-row">
-                <label>Raggio: {values.radius} piedi</label>
+                <label>Radius: {values.radius} feet</label>
                 <input
                   type="range"
                   min="5"
@@ -895,7 +895,7 @@ const SpellAreaControlsModal: React.FC<{
             {area.type === 'cone' && (
               <>
                 <div className="control-row">
-                  <label>Raggio: {values.radius} piedi</label>
+                  <label>Radius: {values.radius} feet</label>
                   <input
                     type="range"
                     min="5"
@@ -905,7 +905,7 @@ const SpellAreaControlsModal: React.FC<{
                   />
                 </div>
                 <div className="control-row">
-                  <label>Angolo: {values.angle}°</label>
+                  <label>Angle: {values.angle}°</label>
                   <input
                     type="range"
                     min="15"
@@ -920,7 +920,7 @@ const SpellAreaControlsModal: React.FC<{
             {area.type === 'square' && (
               <>
                 <div className="control-row">
-                  <label>Larghezza: {values.width} piedi</label>
+                  <label>Width: {values.width} feet</label>
                   <input
                     type="range"
                     min="5"
@@ -930,7 +930,7 @@ const SpellAreaControlsModal: React.FC<{
                   />
                 </div>
                 <div className="control-row">
-                  <label>Lunghezza: {values.length} piedi</label>
+                  <label>Length: {values.length} feet</label>
                   <input
                     type="range"
                     min="5"
@@ -945,7 +945,7 @@ const SpellAreaControlsModal: React.FC<{
             {area.type === 'line' && (
               <>
                 <div className="control-row">
-                  <label>Larghezza: {values.width} piedi</label>
+                  <label>Width: {values.width} feet</label>
                   <input
                     type="range"
                     min="5"
@@ -955,7 +955,7 @@ const SpellAreaControlsModal: React.FC<{
                   />
                 </div>
                 <div className="control-row">
-                  <label>Lunghezza: {values.length} piedi</label>
+                  <label>Length: {values.length} feet</label>
                   <input
                     type="range"
                     min="5"
@@ -971,7 +971,7 @@ const SpellAreaControlsModal: React.FC<{
           {/* Rotation Controls */}
           {(area.type === 'cone' || area.type === 'line') && (
             <div className="rotation-controls">
-              <h4>Rotazione</h4>
+              <h4>Rotation</h4>
               <div className="rotation-buttons">
                 <button onClick={() => handleRotate(-1)} className="btn btn-small">↶ -30°</button>
                 <button onClick={() => handleRotate(1)} className="btn btn-small">↷ +30°</button>
@@ -981,9 +981,9 @@ const SpellAreaControlsModal: React.FC<{
         </div>
         
         <div className="modal-footer">
-          <button onClick={handleApply} className="btn btn-primary">Applica</button>
-          <button onClick={controls.onDelete} className="btn btn-danger">Elimina</button>
-          <button onClick={onClose} className="btn btn-secondary">Chiudi</button>
+          <button onClick={handleApply} className="btn btn-primary">Apply</button>
+          <button onClick={controls.onDelete} className="btn btn-danger">Delete</button>
+          <button onClick={onClose} className="btn btn-secondary">Close</button>
         </div>
       </div>
     </div>
@@ -1020,7 +1020,7 @@ const SaveLoadMenu: React.FC<{
     setIsLoading(true);
     try {
       CombatService.saveEncounter(saveName, saveDescription);
-      alert('💾 Partita salvata con successo!');
+      alert('💾 Game saved successfully!');
       setSaveName('');
       setSaveDescription('');
       loadSavedEncounters();
@@ -1080,7 +1080,7 @@ const SaveLoadMenu: React.FC<{
   };
 
   const handleDelete = (encounterId: string, encounterName: string) => {
-    if (confirm(`Sei sicuro di voler eliminare "${encounterName}"?`)) {
+    if (confirm(`Are you sure you want to delete "${encounterName}"?`)) {
       const success = CombatService.getSaveLoadService().deleteEncounter(encounterId);
       if (success) {
         alert('🗑️ Partita eliminata con successo!');
@@ -1095,7 +1095,7 @@ const SaveLoadMenu: React.FC<{
     setIsLoading(true);
     try {
       CombatService.getSaveLoadService().quickSave(CombatService.getCombatState(), []);
-      alert('⚡ Salvataggio rapido completato!');
+      alert('⚡ Quick save completed!');
       loadSavedEncounters();
       onSaved();
     } catch (error) {
@@ -1109,7 +1109,7 @@ const SaveLoadMenu: React.FC<{
     <div className="save-load-menu-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="save-load-menu-modal">
         <div className="modal-header">
-          <h3>💾 Gestione Salvataggi</h3>
+          <h3>💾 Save Management</h3>
           <button onClick={onClose} className="btn btn-tiny">✕</button>
         </div>
         
@@ -1118,7 +1118,7 @@ const SaveLoadMenu: React.FC<{
             className={`tab-button ${activeTab === 'save' ? 'active' : ''}`}
             onClick={() => setActiveTab('save')}
           >
-            💾 Salva
+            💾 Save
           </button>
           <button 
             className={`tab-button ${activeTab === 'load' ? 'active' : ''}`}
@@ -1163,14 +1163,14 @@ const SaveLoadMenu: React.FC<{
                   className="btn btn-primary"
                   disabled={isLoading || !saveName.trim()}
                 >
-                  {isLoading ? '⏳ Salvataggio...' : '💾 Salva Partita'}
+                  {isLoading ? '⏳ Saving...' : '💾 Save Game'}
                 </button>
                 <button 
                   onClick={handleQuickSave}
                   className="btn btn-secondary"
                   disabled={isLoading}
                 >
-                  {isLoading ? '⏳ Salvataggio...' : '⚡ Salvataggio Rapido'}
+                  {isLoading ? '⏳ Saving...' : '⚡ Quick Save'}
                 </button>
               </div>
             </div>

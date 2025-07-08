@@ -3,6 +3,7 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, DirectionalLight, ShadowGenerator, MeshBuilder, Color3, StandardMaterial, KeyboardEventTypes} from '@babylonjs/core';
 import CombatService from "./CombatService";
+import { InputService } from "./InputServices";
 
 // D&D grid: 1 unit = 5 feet, standard combat grid
 const GRID_SIZE : number = 40; // 40x40 grid = 200x200 feet
@@ -27,11 +28,13 @@ class MainRenderService{
         this.createCamera(canvas);
         this.createLight()
         this.createTerrain()
-        this.bindEvents()
 
-        // Initialize Combat Service
+        // Initialize Combat Service FIRST (includes MeasurementService)
         CombatService.initialize(this._scene);
-
+        
+        // Then bind events (InputService can now use MeasurementService)
+        this.bindEvents();
+        
         this._engine.runRenderLoop(()=>{
             if(this._scene)
                 this._scene.render();
@@ -284,11 +287,14 @@ class MainRenderService{
     
     // Get camera controls info for UI
     public getCameraControlsInfo(): string {
-        return 'Controlli Telecamera: WASD/Frecce - Muovi | Q/E - Zoom | R - Reset';
+        return 'Camera Controls: WASD/Arrows - Move | Q/E - Zoom | R - Reset';
     }
 
     public bindEvents() {
-        // this._inputService = new InputService(this._scene);
+        // Initialize InputService to enable keyboard controls (M key for measurement)
+        if (this._scene) {
+            new InputService(this._scene);
+        }
     }
 
 }

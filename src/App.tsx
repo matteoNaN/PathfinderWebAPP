@@ -12,7 +12,7 @@ import MainRenderService from './Services/MainRenderService';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingMessage, setLoadingMessage] = useState('Caricamento applicazione...');
+  const [loadingMessage, setLoadingMessage] = useState('Loading application...');
   const [error, setError] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [, setIsTutorialComplete] = useState(false);
@@ -20,13 +20,13 @@ function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        setLoadingMessage('Inizializzazione del motore 3D...');
+        setLoadingMessage('Initializing 3D engine...');
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
         
-        // setLoadingMessage('Inizializzazione annunci...');
+        // setLoadingMessage('Initializing ads...');
         // initializeAdSense(); // Initialize Google AdSense
         
-        setLoadingMessage('Caricamento completato!');
+        setLoadingMessage('Loading complete!');
         await new Promise(resolve => setTimeout(resolve, 500));
         
         setIsLoading(false);
@@ -41,7 +41,7 @@ function App() {
           }, 1000);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Errore durante l\'inizializzazione');
+        setError(err instanceof Error ? err.message : 'Error during initialization');
         setIsLoading(false);
       }
     };
@@ -63,7 +63,7 @@ function App() {
     return (
       <div className="App error-state">
         <div className="error-container">
-          <h2>❌ Errore di Caricamento</h2>
+          <h2>❌ Loading Error</h2>
           <p>{error}</p>
           <button onClick={() => window.location.reload()}>
             🔄 Ricarica Applicazione
